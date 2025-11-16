@@ -24,7 +24,7 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
       {...props}
     >
       <div className="mb-6 px-3">
-        <h2 className="text-2xl font-bold text-primary dark:text-primary">Dyad App</h2> {/* Simple header */}
+        <h2 className="text-2xl font-bold text-primary dark:text-primary">SA Report Manager</h2> {/* Changed text */}
       </div>
       <div className="flex flex-col space-y-1">
         {items.map((item) => (

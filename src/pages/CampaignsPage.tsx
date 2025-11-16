@@ -43,7 +43,7 @@ const CampaignsPage = () => {
               <PlusCircle className="mr-2 h-4 w-4" /> Add New Campaign
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Campaign Report</DialogTitle>
             </DialogHeader>

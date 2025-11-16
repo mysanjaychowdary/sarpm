@@ -92,7 +92,7 @@ export function PanelUserManagement() {
                         <PlusCircle className="mr-2 h-4 w-4" /> Add New User
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[600px]">
+                    <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Add New Panel User</DialogTitle>
                       </DialogHeader>
@@ -142,7 +142,7 @@ export function PanelUserManagement() {
                       <PlusCircle className="mr-2 h-4 w-4" /> Add New Panel 3 Credential
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[600px]">
+                  <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Add New Panel 3 Credential</DialogTitle>
                     </DialogHeader>
