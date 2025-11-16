@@ -8,11 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { PlusCircle } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import { EmployeeForm } from "./EmployeeForm";
-import { EditEmployeeForm } from "./EditEmployeeForm"; // New import
-import { Employee } from "@/types"; // Import Employee type
+import { EditEmployeeForm } from "./EditEmployeeForm";
+import { Employee } from "@/types";
 
 export function EmployeeManagement() {
-  const { employees } = useAppContext();
+  const { employees, isLoading, error } = useAppContext();
   const [isAddEmployeeDialogOpen, setIsAddEmployeeDialogOpen] = useState(false);
   const [isEditEmployeeDialogOpen, setIsEditEmployeeDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
@@ -21,6 +21,32 @@ export function EmployeeManagement() {
     setSelectedEmployee(employee);
     setIsEditEmployeeDialogOpen(true);
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Loading Employees...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Please wait while employee data is being loaded.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Error Loading Employees</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>An error occurred: {error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -63,7 +89,7 @@ export function EmployeeManagement() {
                     <TableCell className="font-medium">{employee.name}</TableCell>
                     <TableCell>{employee.email}</TableCell>
                     <TableCell>{employee.role}</TableCell>
-                    <TableCell>{employee.isActive ? "Active" : "Inactive"}</TableCell>
+                    <TableCell>{employee.is_active ? "Active" : "Inactive"}</TableCell>
                     <TableCell>
                       <Button
                         variant="outline"

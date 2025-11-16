@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PlusCircle, Eye, EyeOff, Copy } from "lucide-react";
 import { PanelUserForm } from "./PanelUserForm";
-import { useForm } from "react-hook-form";
+import { useForm } from "@hookform/react-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Input } from "@/components/ui/input";
@@ -22,16 +22,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { showSuccess } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
 import { Panel3Credential } from "@/types";
 
 const panel3CredentialFormSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
-  apiPasswordPlaceholder: z.string().min(6, { message: "API password must be at least 6 characters." }),
+  api_password_placeholder: z.string().min(6, { message: "API password must be at least 6 characters." }), // Changed to snake_case
 });
 
 export function PanelUserManagement() {
-  const { panels, panelUsers, panel3Credentials, addPanel3Credential } = useAppContext();
+  const { panels, panelUsers, panel3Credentials, addPanel3Credential, isLoading, error } = useAppContext();
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [isAddPanel3CredentialDialogOpen, setIsAddPanel3CredentialDialogOpen] = useState(false);
   const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({});
@@ -40,15 +40,19 @@ export function PanelUserManagement() {
     resolver: zodResolver(panel3CredentialFormSchema),
     defaultValues: {
       email: "",
-      apiPasswordPlaceholder: "",
+      api_password_placeholder: "",
     },
   });
 
-  function onPanel3CredentialSubmit(values: z.infer<typeof panel3CredentialFormSchema>) {
-    addPanel3Credential(values as Omit<Panel3Credential, "id">);
-    showSuccess("Panel 3 credential added successfully!");
-    panel3Form.reset();
-    setIsAddPanel3CredentialDialogOpen(false);
+  async function onPanel3CredentialSubmit(values: z.infer<typeof panel3CredentialFormSchema>) {
+    try {
+      await addPanel3Credential(values as Omit<Panel3Credential, "id">);
+      showSuccess("Panel 3 credential added successfully!");
+      panel3Form.reset();
+      setIsAddPanel3CredentialDialogOpen(false);
+    } catch (error) {
+      // Error handled by AppContext
+    }
   }
 
   const togglePasswordVisibility = (id: string) => {
@@ -65,6 +69,32 @@ export function PanelUserManagement() {
   };
 
   const panelsForUsers = panels.filter(p => p.name !== "Panel 3"); // Only Panel 1 and Panel 2 have users
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Loading Panel Users & Credentials...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Please wait while data is being loaded.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Error Loading Panel Users & Credentials</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>An error occurred: {error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -110,18 +140,18 @@ export function PanelUserManagement() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {panelUsers.filter(user => user.panelId === panel.id).length === 0 ? (
+                    {panelUsers.filter(user => user.panel_id === panel.id).length === 0 ? ( // Changed to snake_case
                       <TableRow>
                         <TableCell colSpan={4} className="text-center">No users for {panel.name} yet.</TableCell>
                       </TableRow>
                     ) : (
                       panelUsers
-                        .filter((user) => user.panelId === panel.id)
+                        .filter((user) => user.panel_id === panel.id) // Changed to snake_case
                         .map((user) => (
                           <TableRow key={user.id}>
                             <TableCell className="font-medium">{user.username}</TableCell>
                             <TableCell>{user.email}</TableCell>
-                            <TableCell>{user.isActive ? "Active" : "Inactive"}</TableCell>
+                            <TableCell>{user.is_active ? "Active" : "Inactive"}</TableCell> {/* Changed to snake_case */}
                             <TableCell>
                               <Button variant="outline" size="sm" className="mr-2">Edit</Button>
                               <Button variant="destructive" size="sm">Delete</Button>
@@ -163,7 +193,7 @@ export function PanelUserManagement() {
                         />
                         <FormField
                           control={panel3Form.control}
-                          name="apiPasswordPlaceholder"
+                          name="api_password_placeholder"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>API Password / Access Password</FormLabel>
@@ -204,7 +234,7 @@ export function PanelUserManagement() {
                           <div className="flex items-center space-x-2">
                             <span>
                               {showPasswords[credential.id]
-                                ? credential.apiPasswordPlaceholder
+                                ? credential.api_password_placeholder // Changed to snake_case
                                 : "********"}
                             </span>
                             <Button
@@ -223,7 +253,7 @@ export function PanelUserManagement() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => copyToClipboard(credential.apiPasswordPlaceholder)}
+                                onClick={() => copyToClipboard(credential.api_password_placeholder)} // Changed to snake_case
                                 className="h-8 w-8 p-0"
                               >
                                 <Copy className="h-4 w-4" />

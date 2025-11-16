@@ -23,10 +23,14 @@ export function CampaignTable({ reports }: CampaignTableProps) {
   const getPanelUserName = (userId: string) => panelUsers.find(u => u.id === userId)?.username || "N/A";
   const getPanel3UserEmail = (credId?: string) => credId ? (panel3Credentials.find(c => c.id === credId)?.email || "N/A") : "N/A";
 
-  const handleStatusUpdate = (id: string, currentStatus: string) => {
+  const handleStatusUpdate = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === "Pending" ? "Completed" : "Pending"; // Simple toggle for now
-    updateCampaignStatus(id, newStatus);
-    showSuccess(`Campaign status updated to ${newStatus}!`);
+    try {
+      await updateCampaignStatus(id, newStatus);
+      showSuccess(`Campaign status updated to ${newStatus}!`);
+    } catch (error) {
+      // Error handled by AppContext
+    }
   };
 
   return (
@@ -37,14 +41,14 @@ export function CampaignTable({ reports }: CampaignTableProps) {
             <TableHead>Campaign ID</TableHead>
             <TableHead>Campaign Name</TableHead>
             <TableHead>Type</TableHead>
-            <TableHead>Campaign Date</TableHead> {/* New TableHead */}
+            <TableHead>Campaign Date</TableHead>
             <TableHead>Panel</TableHead>
             <TableHead>Panel User</TableHead>
             <TableHead>Panel 3 User</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Created Date</TableHead>
             <TableHead>Updated Date</TableHead>
-            <TableHead className="sticky right-0 bg-background z-10">Actions</TableHead> {/* Sticky Actions */}
+            <TableHead className="sticky right-0 bg-background z-10">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -55,25 +59,25 @@ export function CampaignTable({ reports }: CampaignTableProps) {
           ) : (
             reportsToDisplay.map((report) => (
               <TableRow key={report.id}>
-                <TableCell className="font-medium">{report.campaignId}</TableCell>
-                <TableCell>{report.campaignName}</TableCell>
+                <TableCell className="font-medium">{report.campaign_id}</TableCell>
+                <TableCell>{report.campaign_name}</TableCell>
                 <TableCell>
-                  <Badge variant={report.campaignType === "Urgent" ? "destructive" : report.campaignType === "Priority" ? "default" : "secondary"}>
-                    {report.campaignType}
+                  <Badge variant={report.campaign_type === "Urgent" ? "destructive" : report.campaign_type === "Priority" ? "default" : "secondary"}>
+                    {report.campaign_type}
                   </Badge>
                 </TableCell>
-                <TableCell>{format(new Date(report.campaignDate), "PPP")}</TableCell> {/* Display Campaign Date */}
-                <TableCell>{getPanelName(report.panelId)}</TableCell>
-                <TableCell>{getPanelUserName(report.panelUserId)}</TableCell>
-                <TableCell>{getPanel3UserEmail(report.panel3CredentialId)}</TableCell>
+                <TableCell>{format(new Date(report.campaign_date), "PPP")}</TableCell>
+                <TableCell>{getPanelName(report.panel_id)}</TableCell>
+                <TableCell>{getPanelUserName(report.panel_user_id)}</TableCell>
+                <TableCell>{getPanel3UserEmail(report.panel3_credential_id)}</TableCell>
                 <TableCell>
                   <Badge variant={report.status === "Completed" ? "default" : "secondary"}>
                     {report.status}
                   </Badge>
                 </TableCell>
-                <TableCell>{format(new Date(report.createdDate), "PPP p")}</TableCell>
-                <TableCell>{format(new Date(report.updatedDate), "PPP p")}</TableCell>
-                <TableCell className="sticky right-0 bg-background z-10 flex space-x-2"> {/* Sticky Actions */}
+                <TableCell>{format(new Date(report.created_date), "PPP p")}</TableCell>
+                <TableCell>{format(new Date(report.updated_date), "PPP p")}</TableCell>
+                <TableCell className="sticky right-0 bg-background z-10 flex space-x-2">
                   <Link to={`/campaigns/${report.id}`}>
                     <Button variant="outline" size="sm">View</Button>
                   </Link>

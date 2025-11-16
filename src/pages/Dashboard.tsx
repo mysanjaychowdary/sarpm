@@ -11,16 +11,42 @@ import { PlusCircle } from "lucide-react";
 import { isToday } from "date-fns";
 
 const Dashboard = () => {
-  const { campaignReports } = useAppContext();
+  const { campaignReports, isLoading, error } = useAppContext();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const todayReports = useMemo(() => {
-    return campaignReports.filter(report => isToday(new Date(report.createdDate)));
+    return campaignReports.filter(report => isToday(new Date(report.created_date))); // Changed to snake_case
   }, [campaignReports]);
 
   const todayPendingReports = todayReports.filter(report => report.status === "Pending");
   const todayCompletedReports = todayReports.filter(report => report.status === "Completed");
   const recentlyAddedReports = campaignReports.slice(0, 5); // Show top 5 most recent overall
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Loading Dashboard...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Please wait while dashboard data is being loaded.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Error Loading Dashboard</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>An error occurred: {error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">

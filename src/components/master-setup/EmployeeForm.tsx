@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm } from "@hookform/react-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -18,17 +18,17 @@ import {
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppContext } from "@/context/AppContext";
-import { showSuccess } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
 import { Employee } from "@/types";
 
 const employeeFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
-  passwordPlaceholder: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  password_placeholder: z.string().min(6, { message: "Password must be at least 6 characters." }), // Changed to snake_case
   role: z.enum(["Admin", "Campaign Manager"], {
     required_error: "Please select a role.",
   }),
-  isActive: z.boolean().default(true),
+  is_active: z.boolean().default(true), // Changed to snake_case
 });
 
 interface EmployeeFormProps {
@@ -43,17 +43,21 @@ export function EmployeeForm({ onEmployeeAdded }: EmployeeFormProps) {
     defaultValues: {
       name: "",
       email: "",
-      passwordPlaceholder: "",
+      password_placeholder: "",
       role: "Campaign Manager",
-      isActive: true,
+      is_active: true,
     },
   });
 
-  function onSubmit(values: z.infer<typeof employeeFormSchema>) {
-    addEmployee(values as Omit<Employee, "id">);
-    showSuccess("Employee added successfully!");
-    form.reset();
-    onEmployeeAdded?.();
+  async function onSubmit(values: z.infer<typeof employeeFormSchema>) {
+    try {
+      await addEmployee(values as Omit<Employee, "id">);
+      showSuccess("Employee added successfully!");
+      form.reset();
+      onEmployeeAdded?.();
+    } catch (error) {
+      // Error handled by AppContext, just prevent further action
+    }
   }
 
   return (
@@ -87,7 +91,7 @@ export function EmployeeForm({ onEmployeeAdded }: EmployeeFormProps) {
         />
         <FormField
           control={form.control}
-          name="passwordPlaceholder"
+          name="password_placeholder"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Password</FormLabel>
@@ -124,7 +128,7 @@ export function EmployeeForm({ onEmployeeAdded }: EmployeeFormProps) {
         />
         <FormField
           control={form.control}
-          name="isActive"
+          name="is_active"
           render={({ field }) => (
             <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
               <FormControl>

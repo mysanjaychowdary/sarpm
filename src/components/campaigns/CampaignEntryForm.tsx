@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm } from "@hookform/react-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -26,16 +26,16 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
 const campaignFormSchema = z.object({
-  campaignId: z.string().min(1, { message: "Campaign ID is required." }),
-  campaignName: z.string().min(2, { message: "Campaign name must be at least 2 characters." }),
-  panelId: z.string().min(1, { message: "Please select a panel." }),
-  panelUserId: z.string().min(1, { message: "Please select a panel user." }),
-  panel3CredentialId: z.string().optional(),
-  panel3PasswordPlaceholder: z.string().optional(),
-  campaignType: z.enum(["Normal", "Priority", "Urgent"], {
+  campaign_id: z.string().min(1, { message: "Campaign ID is required." }), // Changed to snake_case
+  campaign_name: z.string().min(2, { message: "Campaign name must be at least 2 characters." }), // Changed to snake_case
+  panel_id: z.string().min(1, { message: "Please select a panel." }), // Changed to snake_case
+  panel_user_id: z.string().min(1, { message: "Please select a panel user." }), // Changed to snake_case
+  panel3_credential_id: z.string().optional(), // Changed to snake_case
+  panel3_password_placeholder: z.string().optional(), // Changed to snake_case
+  campaign_type: z.enum(["Normal", "Priority", "Urgent"], { // Changed to snake_case
     required_error: "Please select a campaign type.",
   }),
-  campaignDate: z.date({
+  campaign_date: z.date({ // Changed to snake_case
     required_error: "A campaign date is required.",
   }),
 });
@@ -51,64 +51,68 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
   const form = useForm<z.infer<typeof campaignFormSchema>>({
     resolver: zodResolver(campaignFormSchema),
     defaultValues: {
-      campaignId: uuidv4().substring(0, 8), // Auto-generate a short ID
-      campaignName: "",
-      panelId: "",
-      panelUserId: "",
-      panel3CredentialId: "",
-      panel3PasswordPlaceholder: "",
-      campaignType: "Normal", // Default campaign type
-      campaignDate: new Date(), // Default to today
+      campaign_id: uuidv4().substring(0, 8), // Auto-generate a short ID
+      campaign_name: "",
+      panel_id: "",
+      panel_user_id: "",
+      panel3_credential_id: "",
+      panel3_password_placeholder: "",
+      campaign_type: "Normal", // Default campaign type
+      campaign_date: new Date(), // Default to today
     },
   });
 
-  const selectedPanelId = form.watch("panelId");
-  const filteredPanelUsers = panelUsers.filter(user => user.panelId === selectedPanelId);
+  const selectedPanelId = form.watch("panel_id");
+  const filteredPanelUsers = panelUsers.filter(user => user.panel_id === selectedPanelId);
 
   useEffect(() => {
     const panel = panels.find(p => p.id === selectedPanelId);
-    setSelectedPanelRequiresPanel3(panel?.requiresPanel3Credentials || false);
-    if (!panel?.requiresPanel3Credentials) {
-      form.setValue("panel3CredentialId", "");
-      form.setValue("panel3PasswordPlaceholder", "");
+    setSelectedPanelRequiresPanel3(panel?.requires_panel3_credentials || false); // Changed to snake_case
+    if (!panel?.requires_panel3_credentials) { // Changed to snake_case
+      form.setValue("panel3_credential_id", "");
+      form.setValue("panel3_password_placeholder", "");
     }
     // Reset panel user if selected panel changes
-    form.setValue("panelUserId", "");
+    form.setValue("panel_user_id", "");
   }, [selectedPanelId, panels, form]);
 
   const generateNewCampaignId = () => {
-    form.setValue("campaignId", uuidv4().substring(0, 8));
+    form.setValue("campaign_id", uuidv4().substring(0, 8));
   };
 
-  function onSubmit(values: z.infer<typeof campaignFormSchema>) {
-    if (selectedPanelRequiresPanel3 && (!values.panel3CredentialId || !values.panel3PasswordPlaceholder)) {
+  async function onSubmit(values: z.infer<typeof campaignFormSchema>) {
+    if (selectedPanelRequiresPanel3 && (!values.panel3_credential_id || !values.panel3_password_placeholder)) {
       showError("Panel 3 user and password are required for Panel 2 campaigns.");
       return;
     }
 
-    addCampaignReport({
-      campaignId: values.campaignId,
-      campaignName: values.campaignName,
-      panelId: values.panelId,
-      panelUserId: values.panelUserId,
-      panel3CredentialId: values.panel3CredentialId || undefined,
-      panel3PasswordPlaceholder: values.panel3PasswordPlaceholder || undefined,
-      status: "Pending",
-      campaignType: values.campaignType,
-      campaignDate: values.campaignDate.toISOString(), // Save as ISO string
-    });
-    showSuccess("Campaign report created successfully!");
-    form.reset({
-      campaignId: uuidv4().substring(0, 8),
-      campaignName: "",
-      panelId: "",
-      panelUserId: "",
-      panel3CredentialId: "",
-      panel3PasswordPlaceholder: "",
-      campaignType: "Normal",
-      campaignDate: new Date(),
-    });
-    onCampaignAdded?.(); // Call callback to close dialog
+    try {
+      await addCampaignReport({
+        campaign_id: values.campaign_id,
+        campaign_name: values.campaign_name,
+        panel_id: values.panel_id,
+        panel_user_id: values.panel_user_id,
+        panel3_credential_id: values.panel3_credential_id || undefined,
+        panel3_password_placeholder: values.panel3_password_placeholder || undefined,
+        status: "Pending",
+        campaign_type: values.campaign_type,
+        campaign_date: values.campaign_date.toISOString(), // Save as ISO string
+      });
+      showSuccess("Campaign report created successfully!");
+      form.reset({
+        campaign_id: uuidv4().substring(0, 8),
+        campaign_name: "",
+        panel_id: "",
+        panel_user_id: "",
+        panel3_credential_id: "",
+        panel3_password_placeholder: "",
+        campaign_type: "Normal",
+        campaign_date: new Date(),
+      });
+      onCampaignAdded?.(); // Call callback to close dialog
+    } catch (error) {
+      // Error handled by AppContext, just prevent further action
+    }
   }
 
   return (
@@ -116,7 +120,7 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="campaignId"
+          name="campaign_id"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Campaign ID</FormLabel>
@@ -134,7 +138,7 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
         />
         <FormField
           control={form.control}
-          name="campaignName"
+          name="campaign_name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Campaign Name / Title</FormLabel>
@@ -147,7 +151,7 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
         />
         <FormField
           control={form.control}
-          name="campaignType"
+          name="campaign_type"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Campaign Type</FormLabel>
@@ -169,7 +173,7 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
         />
         <FormField
           control={form.control}
-          name="campaignDate"
+          name="campaign_date"
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Campaign Date</FormLabel>
@@ -207,7 +211,7 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
         />
         <FormField
           control={form.control}
-          name="panelId"
+          name="panel_id"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Select Panel</FormLabel>
@@ -231,7 +235,7 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
         />
         <FormField
           control={form.control}
-          name="panelUserId"
+          name="panel_user_id"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Select User From Panel</FormLabel>
@@ -259,7 +263,7 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
             <h3 className="text-lg font-semibold">Panel 3 Assignment</h3>
             <FormField
               control={form.control}
-              name="panel3CredentialId"
+              name="panel3_credential_id"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Select Panel 3 User (Email)</FormLabel>
@@ -283,7 +287,7 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
             />
             <FormField
               control={form.control}
-              name="panel3PasswordPlaceholder"
+              name="panel3_password_placeholder"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Enter Panel 3 Password</FormLabel>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm } from "@hookform/react-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -17,14 +17,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useAppContext } from "@/context/AppContext";
-import { showSuccess } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
 import { Panel } from "@/types";
 
 const panelFormSchema = z.object({
   id: z.string(),
   name: z.string().min(2, { message: "Panel name must be at least 2 characters." }),
   description: z.string().optional(),
-  requiresPanel3Credentials: z.boolean().default(false),
+  requires_panel3_credentials: z.boolean().default(false), // Changed to snake_case
 });
 
 interface EditPanelFormProps {
@@ -41,7 +41,7 @@ export function EditPanelForm({ panel, onPanelUpdated }: EditPanelFormProps) {
       id: panel.id,
       name: panel.name,
       description: panel.description,
-      requiresPanel3Credentials: panel.requiresPanel3Credentials,
+      requires_panel3_credentials: panel.requires_panel3_credentials,
     },
   });
 
@@ -50,14 +50,18 @@ export function EditPanelForm({ panel, onPanelUpdated }: EditPanelFormProps) {
       id: panel.id,
       name: panel.name,
       description: panel.description,
-      requiresPanel3Credentials: panel.requiresPanel3Credentials,
+      requires_panel3_credentials: panel.requires_panel3_credentials,
     });
   }, [panel, form]);
 
-  function onSubmit(values: z.infer<typeof panelFormSchema>) {
-    updatePanel(values as Panel);
-    showSuccess("Panel updated successfully!");
-    onPanelUpdated?.();
+  async function onSubmit(values: z.infer<typeof panelFormSchema>) {
+    try {
+      await updatePanel(values as Panel);
+      showSuccess("Panel updated successfully!");
+      onPanelUpdated?.();
+    } catch (error) {
+      // Error handled by AppContext, just prevent further action
+    }
   }
 
   return (
@@ -91,7 +95,7 @@ export function EditPanelForm({ panel, onPanelUpdated }: EditPanelFormProps) {
         />
         <FormField
           control={form.control}
-          name="requiresPanel3Credentials"
+          name="requires_panel3_credentials"
           render={({ field }) => (
             <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
               <FormControl>

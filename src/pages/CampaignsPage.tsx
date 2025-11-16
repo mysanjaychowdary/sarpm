@@ -14,7 +14,7 @@ import { useAppContext } from "@/context/AppContext";
 import { CampaignType } from "@/types";
 
 const CampaignsPage = () => {
-  const { campaignReports, panels } = useAppContext();
+  const { campaignReports, panels, isLoading, error } = useAppContext();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,14 +24,40 @@ const CampaignsPage = () => {
   const filteredCampaigns = useMemo(() => {
     let filtered = campaignReports.filter(report => {
       const matchesStatus = activeTab === "pending" ? report.status === "Pending" : report.status === "Completed";
-      const matchesSearch = report.campaignName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            report.campaignId.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesPanel = filterPanel === "all" || report.panelId === filterPanel;
-      const matchesCampaignType = filterCampaignType === "all" || report.campaignType === filterCampaignType;
+      const matchesSearch = report.campaign_name.toLowerCase().includes(searchTerm.toLowerCase()) || // Changed to snake_case
+                            report.campaign_id.toLowerCase().includes(searchTerm.toLowerCase()); // Changed to snake_case
+      const matchesPanel = filterPanel === "all" || report.panel_id === filterPanel; // Changed to snake_case
+      const matchesCampaignType = filterCampaignType === "all" || report.campaign_type === filterCampaignType; // Changed to snake_case
       return matchesStatus && matchesSearch && matchesPanel && matchesCampaignType;
     });
     return filtered;
   }, [campaignReports, activeTab, searchTerm, filterPanel, filterCampaignType]);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Loading Campaigns...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Please wait while campaign data is being loaded.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Error Loading Campaigns</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>An error occurred: {error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">

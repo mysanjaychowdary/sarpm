@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm } from "@hookform/react-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -20,18 +20,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useAppContext } from "@/context/AppContext";
-import { showSuccess } from "@/utils/toast";
-import { Panel } from "@/types"; // Import Panel type
-import { EditPanelForm } from "./EditPanelForm"; // Import EditPanelForm
+import { showSuccess, showError } from "@/utils/toast";
+import { Panel } from "@/types";
+import { EditPanelForm } from "./EditPanelForm";
 
 const panelFormSchema = z.object({
   name: z.string().min(2, { message: "Panel name must be at least 2 characters." }),
   description: z.string().optional(),
-  requiresPanel3Credentials: z.boolean().default(false),
+  requires_panel3_credentials: z.boolean().default(false), // Changed to snake_case
 });
 
 export function PanelManagement() {
-  const { panels, addPanel, deletePanel } = useAppContext();
+  const { panels, addPanel, deletePanel, isLoading, error } = useAppContext();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedPanel, setSelectedPanel] = useState<Panel | null>(null);
@@ -41,14 +41,18 @@ export function PanelManagement() {
     defaultValues: {
       name: "",
       description: "",
-      requiresPanel3Credentials: false,
+      requires_panel3_credentials: false,
     },
   });
 
-  function onSubmit(values: z.infer<typeof panelFormSchema>) {
-    addPanel(values as Omit<Panel, "id">);
-    showSuccess("Panel added successfully!");
-    form.reset();
+  async function onSubmit(values: z.infer<typeof panelFormSchema>) {
+    try {
+      await addPanel(values as Omit<Panel, "id">);
+      showSuccess("Panel added successfully!");
+      form.reset();
+    } catch (error) {
+      // Error handled by AppContext
+    }
   }
 
   const handleEditClick = (panel: Panel) => {
@@ -61,14 +65,44 @@ export function PanelManagement() {
     setIsDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (selectedPanel) {
-      deletePanel(selectedPanel.id);
-      showSuccess(`Panel '${selectedPanel.name}' deleted successfully!`);
-      setIsDeleteDialogOpen(false);
-      setSelectedPanel(null);
+      try {
+        await deletePanel(selectedPanel.id);
+        showSuccess(`Panel '${selectedPanel.name}' deleted successfully!`);
+        setIsDeleteDialogOpen(false);
+        setSelectedPanel(null);
+      } catch (error) {
+        // Error handled by AppContext
+      }
     }
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Loading Panels...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Please wait while panel data is being loaded.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Error Loading Panels</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>An error occurred: {error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -107,7 +141,7 @@ export function PanelManagement() {
               />
               <FormField
                 control={form.control}
-                name="requiresPanel3Credentials"
+                name="requires_panel3_credentials"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
@@ -151,7 +185,7 @@ export function PanelManagement() {
                 <TableRow key={panel.id}>
                   <TableCell className="font-medium">{panel.name}</TableCell>
                   <TableCell>{panel.description}</TableCell>
-                  <TableCell>{panel.requiresPanel3Credentials ? "Yes" : "No"}</TableCell>
+                  <TableCell>{panel.requires_panel3_credentials ? "Yes" : "No"}</TableCell>
                   <TableCell>
                     <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEditClick(panel)}>Edit</Button>
                     <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(panel)}>Delete</Button>

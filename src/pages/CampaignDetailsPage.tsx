@@ -23,12 +23,42 @@ import { Label } from "@/components/ui/label";
 const CampaignDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus } = useAppContext();
+  const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus, isLoading, error } = useAppContext();
   const [showPanel3Password, setShowPanel3Password] = useState(false);
   const [isStatusUpdateDialogOpen, setIsStatusUpdateDialogOpen] = useState(false);
   const [statusUpdateRemarks, setStatusUpdateRemarks] = useState("");
 
   const report = campaignReports.find((r) => r.id === id);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Loading Campaign Details...</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Please wait while the campaign details are being loaded.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Error Loading Campaign Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>An error occurred: {error}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!report) {
     return (
@@ -48,18 +78,22 @@ const CampaignDetailsPage = () => {
     );
   }
 
-  const panel = panels.find((p) => p.id === report.panelId);
-  const panelUser = panelUsers.find((u) => u.id === report.panelUserId);
-  const panel3Credential = report.panel3CredentialId
-    ? panel3Credentials.find((c) => c.id === report.panel3CredentialId)
+  const panel = panels.find((p) => p.id === report.panel_id); // Changed to snake_case
+  const panelUser = panelUsers.find((u) => u.id === report.panel_user_id); // Changed to snake_case
+  const panel3Credential = report.panel3_credential_id // Changed to snake_case
+    ? panel3Credentials.find((c) => c.id === report.panel3_credential_id) // Changed to snake_case
     : undefined;
 
-  const handleStatusUpdate = (newStatus: "Pending" | "Completed") => {
-    updateCampaignStatus(report.id, newStatus);
-    showSuccess(`Campaign status updated to ${newStatus}!`);
-    setIsStatusUpdateDialogOpen(false);
-    setStatusUpdateRemarks(""); // Clear remarks after update
-    // In a real app, you'd also save remarks and audit log here.
+  const handleStatusUpdate = async (newStatus: "Pending" | "Completed") => {
+    try {
+      await updateCampaignStatus(report.id, newStatus);
+      showSuccess(`Campaign status updated to ${newStatus}!`);
+      setIsStatusUpdateDialogOpen(false);
+      setStatusUpdateRemarks(""); // Clear remarks after update
+      // In a real app, you'd also save remarks and audit log here.
+    } catch (error) {
+      // Error handled by AppContext
+    }
   };
 
   const copyToClipboard = (text: string) => {
@@ -72,7 +106,7 @@ const CampaignDetailsPage = () => {
       <Button variant="outline" onClick={() => navigate(-1)}>
         <ArrowLeft className="mr-2 h-4 w-4" /> Back
       </Button>
-      <h1 className="text-3xl font-bold">Campaign Details: {report.campaignName}</h1>
+      <h1 className="text-3xl font-bold">Campaign Details: {report.campaign_name}</h1>
 
       <Card>
         <CardHeader>
@@ -81,21 +115,21 @@ const CampaignDetailsPage = () => {
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div>
             <p className="text-sm font-medium text-muted-foreground">Campaign ID</p>
-            <p className="text-lg font-semibold">{report.campaignId}</p>
+            <p className="text-lg font-semibold">{report.campaign_id}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">Campaign Name</p>
-            <p className="text-lg font-semibold">{report.campaignName}</p>
+            <p className="text-lg font-semibold">{report.campaign_name}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">Campaign Type</p>
-            <Badge variant={report.campaignType === "Urgent" ? "destructive" : report.campaignType === "Priority" ? "default" : "secondary"}>
-              {report.campaignType}
+            <Badge variant={report.campaign_type === "Urgent" ? "destructive" : report.campaign_type === "Priority" ? "default" : "secondary"}>
+              {report.campaign_type}
             </Badge>
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">Campaign Date</p>
-            <p>{format(new Date(report.campaignDate), "PPP")}</p>
+            <p>{format(new Date(report.campaign_date), "PPP")}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">Status</p>
@@ -113,15 +147,15 @@ const CampaignDetailsPage = () => {
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">Created Date</p>
-            <p>{format(new Date(report.createdDate), "PPP p")}</p>
+            <p>{format(new Date(report.created_date), "PPP p")}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">Updated Date</p>
-            <p>{format(new Date(report.updatedDate), "PPP p")}</p>
+            <p>{format(new Date(report.updated_date), "PPP p")}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">Created By (Admin ID)</p>
-            <p>{report.createdByAdminId}</p>
+            <p>{report.created_by_admin_id}</p>
           </div>
         </CardContent>
       </Card>
@@ -141,7 +175,7 @@ const CampaignDetailsPage = () => {
               <div className="flex items-center space-x-2">
                 <span>
                   {showPanel3Password
-                    ? report.panel3PasswordPlaceholder
+                    ? report.panel3_password_placeholder // Changed to snake_case
                     : "********"}
                 </span>
                 <Button
@@ -156,11 +190,11 @@ const CampaignDetailsPage = () => {
                     <Eye className="h-4 w-4" />
                   )}
                 </Button>
-                {showPanel3Password && report.panel3PasswordPlaceholder && (
+                {showPanel3Password && report.panel3_password_placeholder && ( // Changed to snake_case
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => copyToClipboard(report.panel3PasswordPlaceholder!)}
+                    onClick={() => copyToClipboard(report.panel3_password_placeholder!)} // Changed to snake_case
                     className="h-8 w-8 p-0"
                   >
                     <Copy className="h-4 w-4" />

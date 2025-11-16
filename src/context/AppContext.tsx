@@ -1,85 +1,149 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
-import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus, CampaignType, Employee } from "@/types";
-import { v4 as uuidv4 } from "uuid";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus, Employee } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
+import { showSuccess, showError } from "@/utils/toast";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppContextProvider = ({ children }: { children: ReactNode }) => {
-  const [panels, setPanels] = useState<Panel[]>([
-    { id: uuidv4(), name: "Panel 1", description: "Standard campaigns", requiresPanel3Credentials: false },
-    { id: uuidv4(), name: "Panel 2", description: "Requires Panel 3 for execution", requiresPanel3Credentials: true },
-    { id: uuidv4(), name: "Panel 3", description: "Credential source only", requiresPanel3Credentials: false },
-  ]);
-
-  const [panelUsers, setPanelUsers] = useState<PanelUser[]>([
-    { id: uuidv4(), username: "user1_p1", email: "user1@panel1.com", panelId: panels[0].id, isActive: true, passwordPlaceholder: "password123" },
-    { id: uuidv4(), username: "user2_p1", email: "user2@panel1.com", panelId: panels[0].id, isActive: true, passwordPlaceholder: "password123" },
-    { id: uuidv4(), username: "user1_p2", email: "user1@panel2.com", panelId: panels[1].id, isActive: true, passwordPlaceholder: "password123" },
-  ]);
-
-  const [panel3Credentials, setPanel3Credentials] = useState<Panel3Credential[]>([
-    { id: uuidv4(), email: "p3user1@panel3.com", apiPasswordPlaceholder: "p3pass1" },
-    { id: uuidv4(), email: "p3user2@panel3.com", apiPasswordPlaceholder: "p3pass2" },
-  ]);
-
+export const AppContextProvider = ({ children }: { ReactNode }) => {
+  const [panels, setPanels] = useState<Panel[]>([]);
+  const [panelUsers, setPanelUsers] = useState<PanelUser[]>([]);
+  const [panel3Credentials, setPanel3Credentials] = useState<Panel3Credential[]>([]);
   const [campaignReports, setCampaignReports] = useState<CampaignReport[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [employees, setEmployees] = useState<Employee[]>([
-    { id: uuidv4(), name: "Admin User", email: "admin@example.com", role: "Admin", isActive: true, passwordPlaceholder: "adminpass" },
-    { id: uuidv4(), name: "Campaign Manager 1", email: "cm1@example.com", role: "Campaign Manager", isActive: true, passwordPlaceholder: "cmpass1" },
-  ]);
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { data: panelsData, error: panelsError } = await supabase.from('panels').select('*');
+      if (panelsError) throw panelsError;
+      setPanels(panelsData || []);
 
-  const addPanel = (panel: Omit<Panel, "id">) => {
-    setPanels((prev) => [...prev, { ...panel, id: uuidv4() }]);
+      const { data: panelUsersData, error: panelUsersError } = await supabase.from('panel_users').select('*');
+      if (panelUsersError) throw panelUsersError;
+      setPanelUsers(panelUsersData || []);
+
+      const { data: panel3CredentialsData, error: panel3CredentialsError } = await supabase.from('panel3_credentials').select('*');
+      if (panel3CredentialsError) throw panel3CredentialsError;
+      setPanel3Credentials(panel3CredentialsData || []);
+
+      const { data: campaignReportsData, error: campaignReportsError } = await supabase.from('campaign_reports').select('*').order('created_date', { ascending: false });
+      if (campaignReportsError) throw campaignReportsError;
+      setCampaignReports(campaignReportsData || []);
+
+      const { data: employeesData, error: employeesError } = await supabase.from('employees').select('*');
+      if (employeesError) throw employeesError;
+      setEmployees(employeesData || []);
+
+    } catch (err: any) {
+      console.error("Error fetching data:", err.message);
+      showError("Failed to load data: " + err.message);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const addPanel = async (panel: Omit<Panel, "id">) => {
+    const { data, error } = await supabase.from('panels').insert(panel).select();
+    if (error) {
+      showError("Failed to add panel: " + error.message);
+      throw error;
+    }
+    setPanels((prev) => [...prev, data[0]]);
   };
 
-  const updatePanel = (updatedPanel: Panel) => {
+  const updatePanel = async (updatedPanel: Panel) => {
+    const { data, error } = await supabase.from('panels').update(updatedPanel).eq('id', updatedPanel.id).select();
+    if (error) {
+      showError("Failed to update panel: " + error.message);
+      throw error;
+    }
     setPanels((prev) =>
-      prev.map((panel) => (panel.id === updatedPanel.id ? updatedPanel : panel))
+      prev.map((panel) => (panel.id === updatedPanel.id ? data[0] : panel))
     );
   };
 
-  const deletePanel = (id: string) => {
+  const deletePanel = async (id: string) => {
+    const { error } = await supabase.from('panels').delete().eq('id', id);
+    if (error) {
+      showError("Failed to delete panel: " + error.message);
+      throw error;
+    }
     setPanels((prev) => prev.filter((panel) => panel.id !== id));
-    // Also delete associated panel users and campaign reports in a real app
-    setPanelUsers((prev) => prev.filter((user) => user.panelId !== id));
-    setCampaignReports((prev) => prev.filter((report) => report.panelId !== id));
+    setPanelUsers((prev) => prev.filter((user) => user.panelId !== id)); // Cascade delete in UI
+    setCampaignReports((prev) => prev.filter((report) => report.panelId !== id)); // Cascade delete in UI
   };
 
-  const addPanelUser = (user: Omit<PanelUser, "id">) => {
-    setPanelUsers((prev) => [...prev, { ...user, id: uuidv4() }]);
+  const addPanelUser = async (user: Omit<PanelUser, "id">) => {
+    const { data, error } = await supabase.from('panel_users').insert(user).select();
+    if (error) {
+      showError("Failed to add panel user: " + error.message);
+      throw error;
+    }
+    setPanelUsers((prev) => [...prev, data[0]]);
   };
 
-  const addPanel3Credential = (credential: Omit<Panel3Credential, "id">) => {
-    setPanel3Credentials((prev) => [...prev, { ...credential, id: uuidv4() }]);
+  const addPanel3Credential = async (credential: Omit<Panel3Credential, "id">) => {
+    const { data, error } = await supabase.from('panel3_credentials').insert(credential).select();
+    if (error) {
+      showError("Failed to add Panel 3 credential: " + error.message);
+      throw error;
+    }
+    setPanel3Credentials((prev) => [...prev, data[0]]);
   };
 
-  const addCampaignReport = (report: Omit<CampaignReport, "id" | "createdDate" | "updatedDate" | "createdByAdminId">) => {
+  const addCampaignReport = async (report: Omit<CampaignReport, "id" | "createdDate" | "updatedDate" | "createdByAdminId">) => {
     const now = new Date().toISOString();
-    setCampaignReports((prev) => [
-      { ...report, id: uuidv4(), createdDate: now, updatedDate: now, createdByAdminId: "admin_user_id" }, // Placeholder admin ID
-      ...prev, // Add new reports to the top for "recently added" view
-    ]);
+    const newReport = { ...report, created_date: now, updated_date: now, created_by_admin_id: "admin_user_id" }; // Placeholder admin ID
+    const { data, error } = await supabase.from('campaign_reports').insert(newReport).select();
+    if (error) {
+      showError("Failed to create campaign report: " + error.message);
+      throw error;
+    }
+    setCampaignReports((prev) => [data[0], ...prev]); // Add new reports to the top
   };
 
-  const updateCampaignStatus = (id: string, status: CampaignStatus) => {
+  const updateCampaignStatus = async (id: string, status: CampaignStatus) => {
+    const { data, error } = await supabase.from('campaign_reports').update({ status, updated_date: new Date().toISOString() }).eq('id', id).select();
+    if (error) {
+      showError("Failed to update campaign status: " + error.message);
+      throw error;
+    }
     setCampaignReports((prev) =>
       prev.map((report) =>
-        report.id === id ? { ...report, status, updatedDate: new Date().toISOString() } : report
+        report.id === id ? data[0] : report
       )
     );
   };
 
-  const addEmployee = (employee: Omit<Employee, "id">) => {
-    setEmployees((prev) => [...prev, { ...employee, id: uuidv4() }]);
+  const addEmployee = async (employee: Omit<Employee, "id">) => {
+    const { data, error } = await supabase.from('employees').insert(employee).select();
+    if (error) {
+      showError("Failed to add employee: " + error.message);
+      throw error;
+    }
+    setEmployees((prev) => [...prev, data[0]]);
   };
 
-  const updateEmployee = (updatedEmployee: Employee) => {
+  const updateEmployee = async (updatedEmployee: Employee) => {
+    const { data, error } = await supabase.from('employees').update(updatedEmployee).eq('id', updatedEmployee.id).select();
+    if (error) {
+      showError("Failed to update employee: " + error.message);
+      throw error;
+    }
     setEmployees((prev) =>
       prev.map((employee) =>
-        employee.id === updatedEmployee.id ? updatedEmployee : employee
+        employee.id === updatedEmployee.id ? data[0] : employee
       )
     );
   };
@@ -99,6 +163,8 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     updateCampaignStatus,
     addEmployee,
     updateEmployee,
+    isLoading,
+    error,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

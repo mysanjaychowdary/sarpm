@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm } from "@hookform/react-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -18,15 +18,15 @@ import {
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppContext } from "@/context/AppContext";
-import { showSuccess } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
 import { PanelUser } from "@/types";
 
 const panelUserFormSchema = z.object({
   username: z.string().min(2, { message: "Username must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
-  passwordPlaceholder: z.string().min(6, { message: "Password must be at least 6 characters." }),
-  panelId: z.string().min(1, { message: "Please select a panel." }),
-  isActive: z.boolean().default(true),
+  password_placeholder: z.string().min(6, { message: "Password must be at least 6 characters." }), // Changed to snake_case
+  panel_id: z.string().min(1, { message: "Please select a panel." }), // Changed to snake_case
+  is_active: z.boolean().default(true), // Changed to snake_case
 });
 
 interface PanelUserFormProps {
@@ -41,17 +41,21 @@ export function PanelUserForm({ onUserAdded }: PanelUserFormProps) {
     defaultValues: {
       username: "",
       email: "",
-      passwordPlaceholder: "",
-      panelId: "",
-      isActive: true,
+      password_placeholder: "",
+      panel_id: "",
+      is_active: true,
     },
   });
 
-  function onSubmit(values: z.infer<typeof panelUserFormSchema>) {
-    addPanelUser(values as Omit<PanelUser, "id">);
-    showSuccess("Panel user added successfully!");
-    form.reset();
-    onUserAdded?.();
+  async function onSubmit(values: z.infer<typeof panelUserFormSchema>) {
+    try {
+      await addPanelUser(values as Omit<PanelUser, "id">);
+      showSuccess("Panel user added successfully!");
+      form.reset();
+      onUserAdded?.();
+    } catch (error) {
+      // Error handled by AppContext, just prevent further action
+    }
   }
 
   return (
@@ -85,7 +89,7 @@ export function PanelUserForm({ onUserAdded }: PanelUserFormProps) {
         />
         <FormField
           control={form.control}
-          name="passwordPlaceholder"
+          name="password_placeholder"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Password</FormLabel>
@@ -101,7 +105,7 @@ export function PanelUserForm({ onUserAdded }: PanelUserFormProps) {
         />
         <FormField
           control={form.control}
-          name="panelId"
+          name="panel_id"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Assign to Panel</FormLabel>
@@ -125,7 +129,7 @@ export function PanelUserForm({ onUserAdded }: PanelUserFormProps) {
         />
         <FormField
           control={form.control}
-          name="isActive"
+          name="is_active"
           render={({ field }) => (
             <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
               <FormControl>

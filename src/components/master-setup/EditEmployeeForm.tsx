@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm } from "@hookform/react-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -18,18 +18,18 @@ import {
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppContext } from "@/context/AppContext";
-import { showSuccess } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
 import { Employee } from "@/types";
 
 const employeeFormSchema = z.object({
   id: z.string(), // Include ID for updates
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
-  passwordPlaceholder: z.string().min(6, { message: "Password must be at least 6 characters." }).optional().or(z.literal("")), // Password can be optional for edit, or empty string
+  password_placeholder: z.string().optional().or(z.literal("")), // Changed to snake_case
   role: z.enum(["Admin", "Campaign Manager"], {
     required_error: "Please select a role.",
   }),
-  isActive: z.boolean().default(true),
+  is_active: z.boolean().default(true), // Changed to snake_case
 });
 
 interface EditEmployeeFormProps {
@@ -46,9 +46,9 @@ export function EditEmployeeForm({ employee, onEmployeeUpdated }: EditEmployeeFo
       id: employee.id,
       name: employee.name,
       email: employee.email,
-      passwordPlaceholder: "", // Don't pre-fill password for security
+      password_placeholder: "", // Don't pre-fill password for security
       role: employee.role,
-      isActive: employee.isActive,
+      is_active: employee.is_active,
     },
   });
 
@@ -58,25 +58,29 @@ export function EditEmployeeForm({ employee, onEmployeeUpdated }: EditEmployeeFo
       id: employee.id,
       name: employee.name,
       email: employee.email,
-      passwordPlaceholder: "",
+      password_placeholder: "",
       role: employee.role,
-      isActive: employee.isActive,
+      is_active: employee.is_active,
     });
   }, [employee, form]);
 
-  function onSubmit(values: z.infer<typeof employeeFormSchema>) {
+  async function onSubmit(values: z.infer<typeof employeeFormSchema>) {
     const updatedEmployee: Employee = {
       ...employee, // Keep existing password if not changed
       id: values.id,
       name: values.name,
       email: values.email,
       role: values.role,
-      isActive: values.isActive,
-      passwordPlaceholder: values.passwordPlaceholder || employee.passwordPlaceholder, // Use new password if provided, else keep old
+      is_active: values.is_active,
+      password_placeholder: values.password_placeholder || employee.password_placeholder, // Use new password if provided, else keep old
     };
-    updateEmployee(updatedEmployee);
-    showSuccess("Employee updated successfully!");
-    onEmployeeUpdated?.();
+    try {
+      await updateEmployee(updatedEmployee);
+      showSuccess("Employee updated successfully!");
+      onEmployeeUpdated?.();
+    } catch (error) {
+      // Error handled by AppContext, just prevent further action
+    }
   }
 
   return (
@@ -110,7 +114,7 @@ export function EditEmployeeForm({ employee, onEmployeeUpdated }: EditEmployeeFo
         />
         <FormField
           control={form.control}
-          name="passwordPlaceholder"
+          name="password_placeholder"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Password (Leave blank to keep current)</FormLabel>
@@ -147,7 +151,7 @@ export function EditEmployeeForm({ employee, onEmployeeUpdated }: EditEmployeeFo
         />
         <FormField
           control={form.control}
-          name="isActive"
+          name="is_active"
           render={({ field }) => (
             <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
               <FormControl>
