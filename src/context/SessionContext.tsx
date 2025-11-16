@@ -33,12 +33,9 @@ export const SessionContextProvider = ({ children }: { children: ReactNode }) =>
           setSession(null);
           setUser(null);
           navigate('/login', { replace: true });
-        } else if (event === 'AUTH_API_ERROR') {
-          showError("Authentication error: " + currentSession?.error?.message);
-          setSession(null);
-          setUser(null);
-          navigate('/login', { replace: true });
         }
+        // AUTH_API_ERROR is not a valid AuthChangeEvent type and Session does not have an error property.
+        // Specific auth errors are handled by the Auth component itself or where the auth action is initiated.
         setIsLoading(false);
       }
     );
