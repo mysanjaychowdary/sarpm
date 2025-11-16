@@ -6,10 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAppContext } from "@/context/AppContext";
 import { format } from "date-fns";
-import { showSuccess } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast"; // Imported showError
 import { Link } from "react-router-dom";
 import { CampaignReport } from "@/types";
-import { useSession } from "@/context/SessionContext"; // New import
+import { useSession } from "@/context/SessionContext";
 
 interface CampaignTableProps {
   reports?: CampaignReport[]; // Optional prop to filter reports
@@ -17,9 +17,9 @@ interface CampaignTableProps {
 
 export function CampaignTable({ reports }: CampaignTableProps) {
   const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus } = useAppContext();
-  const { isAdmin, isEmployee } = useSession(); // Get roles from session
+  const { isAdmin, isEmployee } = useSession();
 
-  const reportsToDisplay = reports || campaignReports; // Use filtered reports if provided, otherwise all
+  const reportsToDisplay = reports || campaignReports;
 
   const getPanelName = (panelId: string) => panels.find(p => p.id === panelId)?.name || "N/A";
   const getPanelUserName = (userId: string) => panelUsers.find(u => u.id === userId)?.username || "N/A";

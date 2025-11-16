@@ -1,20 +1,20 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
-import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus } from "@/types";
+import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus, Employee } from "@/types"; // Imported Employee
 import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
-import { useSession } from "./SessionContext"; // New import
+import { useSession } from "./SessionContext";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppContextProvider = ({ children }: { children: ReactNode }) => {
-  const { user, isLoadingSession } = useSession(); // Use session context
+  const { user, isLoadingSession } = useSession();
   const [panels, setPanels] = useState<Panel[]>([]);
   const [panelUsers, setPanelUsers] = useState<PanelUser[]>([]);
   const [panel3Credentials, setPanel3Credentials] = useState<Panel3Credential[]>([]);
   const [campaignReports, setCampaignReports] = useState<CampaignReport[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]); // New state for employees
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,7 +22,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     console.log("AppContext: fetchData called.");
 
     if (isLoadingSession) {
-      return; // Wait for session to load
+      return;
     }
 
     setIsLoading(true);
@@ -62,7 +62,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [user, isLoadingSession]); // Depend on user and isLoadingSession
+  }, [user, isLoadingSession]);
 
   useEffect(() => {
     fetchData();
@@ -162,7 +162,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     panelUsers,
     panel3Credentials,
     campaignReports,
-    employees, // Include employees in context value
+    employees,
     addPanel,
     updatePanel,
     deletePanel,
@@ -170,7 +170,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     addPanel3Credential,
     addCampaignReport,
     updateCampaignStatus,
-    addEmployee, // Include employee functions
+    addEmployee,
     updateEmployee,
     deleteEmployee,
     isLoading,
