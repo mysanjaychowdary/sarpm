@@ -2,7 +2,7 @@
 
 import React from "react";
 import { SidebarNav } from "./SidebarNav";
-import { Home, Settings } from "lucide-react";
+import { Home, ListChecks, LayoutDashboard, Users, Key } from "lucide-react";
 
 const sidebarNavItems = [
   {
@@ -11,9 +11,24 @@ const sidebarNavItems = [
     icon: Home,
   },
   {
-    title: "Master Setup",
-    href: "/master-setup",
-    icon: Settings,
+    title: "Campaigns",
+    href: "/campaigns",
+    icon: ListChecks,
+  },
+  {
+    title: "Panel Management",
+    href: "/settings/panels",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Panel User Management",
+    href: "/settings/panel-users",
+    icon: Users,
+  },
+  {
+    title: "Panel 3 Credentials",
+    href: "/settings/panel3-credentials",
+    icon: Key,
   },
 ];
 

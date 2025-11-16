@@ -28,7 +28,11 @@ const campaignFormSchema = z.object({
   panel3PasswordPlaceholder: z.string().optional(),
 });
 
-export function CampaignEntryForm() {
+interface CampaignEntryFormProps {
+  onCampaignAdded?: () => void;
+}
+
+export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
   const { panels, panelUsers, panel3Credentials, addCampaignReport } = useAppContext();
   const [selectedPanelRequiresPanel3, setSelectedPanelRequiresPanel3] = useState(false);
 
@@ -82,6 +86,7 @@ export function CampaignEntryForm() {
       panel3CredentialId: "",
       panel3PasswordPlaceholder: "",
     });
+    onCampaignAdded?.(); // Call callback to close dialog
   }
 
   return (
