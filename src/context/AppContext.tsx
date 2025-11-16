@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus } from "@/types";
+import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus, CampaignType } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -41,8 +41,8 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const addCampaignReport = (report: Omit<CampaignReport, "id" | "createdDate" | "updatedDate" | "createdByAdminId">) => {
     const now = new Date().toISOString();
     setCampaignReports((prev) => [
-      ...prev,
       { ...report, id: uuidv4(), createdDate: now, updatedDate: now, createdByAdminId: "admin_user_id" }, // Placeholder admin ID
+      ...prev, // Add new reports to the top for "recently added" view
     ]);
   };
 

@@ -24,6 +24,7 @@ export interface Panel3Credential {
 }
 
 export type CampaignStatus = "Pending" | "Completed";
+export type CampaignType = "Normal" | "Priority" | "Urgent";
 
 export interface CampaignReport {
   id: string;
@@ -34,6 +35,7 @@ export interface CampaignReport {
   panel3CredentialId?: string; // Optional, only for Panel 2 campaigns
   panel3PasswordPlaceholder?: string; // Optional, only for Panel 2 campaigns
   status: CampaignStatus;
+  campaignType: CampaignType; // New field for campaign type
   createdDate: string;
   updatedDate: string;
   createdByAdminId: string; // Placeholder for admin who created it

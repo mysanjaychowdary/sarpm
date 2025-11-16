@@ -18,6 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAppContext } from "@/context/AppContext";
 import { showSuccess, showError } from "@/utils/toast";
 import { v4 as uuidv4 } from "uuid";
+import { RefreshCcw } from "lucide-react";
+import { CampaignType } from "@/types";
 
 const campaignFormSchema = z.object({
   campaignId: z.string().min(1, { message: "Campaign ID is required." }),
@@ -26,6 +28,9 @@ const campaignFormSchema = z.object({
   panelUserId: z.string().min(1, { message: "Please select a panel user." }),
   panel3CredentialId: z.string().optional(),
   panel3PasswordPlaceholder: z.string().optional(),
+  campaignType: z.enum(["Normal", "Priority", "Urgent"], {
+    required_error: "Please select a campaign type.",
+  }),
 });
 
 interface CampaignEntryFormProps {
@@ -45,6 +50,7 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
       panelUserId: "",
       panel3CredentialId: "",
       panel3PasswordPlaceholder: "",
+      campaignType: "Normal", // Default campaign type
     },
   });
 
@@ -62,6 +68,10 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
     form.setValue("panelUserId", "");
   }, [selectedPanelId, panels, form]);
 
+  const generateNewCampaignId = () => {
+    form.setValue("campaignId", uuidv4().substring(0, 8));
+  };
+
   function onSubmit(values: z.infer<typeof campaignFormSchema>) {
     if (selectedPanelRequiresPanel3 && (!values.panel3CredentialId || !values.panel3PasswordPlaceholder)) {
       showError("Panel 3 user and password are required for Panel 2 campaigns.");
@@ -76,6 +86,7 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
       panel3CredentialId: values.panel3CredentialId || undefined,
       panel3PasswordPlaceholder: values.panel3PasswordPlaceholder || undefined,
       status: "Pending",
+      campaignType: values.campaignType,
     });
     showSuccess("Campaign report created successfully!");
     form.reset({
@@ -85,6 +96,7 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
       panelUserId: "",
       panel3CredentialId: "",
       panel3PasswordPlaceholder: "",
+      campaignType: "Normal",
     });
     onCampaignAdded?.(); // Call callback to close dialog
   }
@@ -99,7 +111,12 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
             <FormItem>
               <FormLabel>Campaign ID</FormLabel>
               <FormControl>
-                <Input placeholder="Unique Campaign ID" {...field} readOnly />
+                <div className="flex items-center space-x-2">
+                  <Input placeholder="Unique Campaign ID" {...field} />
+                  <Button type="button" variant="outline" size="icon" onClick={generateNewCampaignId}>
+                    <RefreshCcw className="h-4 w-4" />
+                  </Button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -114,6 +131,28 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
               <FormControl>
                 <Input placeholder="e.g., Summer Sale Campaign" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="campaignType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Campaign Type</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select campaign type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Normal">Normal</SelectItem>
+                  <SelectItem value="Priority">Priority</SelectItem>
+                  <SelectItem value="Urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
