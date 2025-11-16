@@ -6,11 +6,11 @@ import { Home, ListChecks, LayoutDashboard, Users, Briefcase, LogOut } from "luc
 import { useSession } from "@/context/SessionContext";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate, Outlet } from "react-router-dom"; // Import Outlet
+import { useNavigate, Outlet } from "react-router-dom";
 import { showError, showSuccess } from "@/utils/toast";
 
-const MainLayout: React.FC = () => { // Removed children prop from type
-  const { user, isLoadingSession, isAdmin, isCampaignManager } = useSession();
+const MainLayout: React.FC = () => {
+  const { user, isAdmin } = useSession(); // Removed isLoadingSession and isCampaignManager as direct conditions for rendering layout
   const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);
   const navigate = useNavigate();
 
@@ -72,13 +72,9 @@ const MainLayout: React.FC = () => { // Removed children prop from type
 
   const sidebarNavItems = getSidebarNavItems();
 
-  if (isLoadingSession) {
-    return null;
-  }
-
-  if (!user) {
-    return null;
-  }
+  // MainLayout should always render its frame. ProtectedRoute will handle content inside Outlet.
+  // The user object might be null initially, but ProtectedRoute will redirect if not authenticated.
+  // We display a generic welcome or user's email if available.
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -90,10 +86,12 @@ const MainLayout: React.FC = () => { // Removed children prop from type
       />
       <div className={`flex-1 p-6 overflow-auto transition-all duration-300 ${isSidebarMinimized ? "ml-0" : "ml-0"}`}>
         <header className="flex justify-between items-center pb-4 border-b mb-6">
-          <h1 className="text-2xl font-semibold">Welcome, {user?.email}!</h1>
-          <Button variant="ghost" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" /> Logout
-          </Button>
+          <h1 className="text-2xl font-semibold">Welcome, {user?.email || "Guest"}!</h1>
+          {user && ( // Only show logout button if user is logged in
+            <Button variant="ghost" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" /> Logout
+            </Button>
+          )}
         </header>
         <Outlet /> {/* Render nested routes here */}
       </div>
