@@ -10,7 +10,7 @@ import CampaignsPage from "./pages/CampaignsPage";
 import PanelManagementPage from "./pages/PanelManagementPage";
 import PanelUserManagementPage from "./pages/PanelUserManagementPage";
 import CampaignDetailsPage from "./pages/CampaignDetailsPage";
-import EmployeeManagementPage from "./pages/EmployeeManagementPage"; // New import
+import EmployeeManagementPage from "./pages/EmployeeManagementPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -18,8 +18,6 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
       <AppContextProvider>
         <BrowserRouter>
           <MainLayout>
@@ -30,7 +28,7 @@ const App = () => (
               <Route path="/campaigns/:id" element={<CampaignDetailsPage />} />
               <Route path="/settings/panels" element={<PanelManagementPage />} />
               <Route path="/settings/panel-users" element={<PanelUserManagementPage />} />
-              <Route path="/settings/employees" element={<EmployeeManagementPage />} /> {/* New route */}
+              <Route path="/settings/employees" element={<EmployeeManagementPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
@@ -38,6 +36,8 @@ const App = () => (
         </BrowserRouter>
       </AppContextProvider>
     </TooltipProvider>
+    <Toaster />
+    <Sonner />
   </QueryClientProvider>
 );
 
