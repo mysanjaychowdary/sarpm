@@ -94,6 +94,10 @@ const CampaignDetailsPage = () => {
             </Badge>
           </div>
           <div>
+            <p className="text-sm font-medium text-muted-foreground">Campaign Date</p>
+            <p>{format(new Date(report.campaignDate), "PPP")}</p>
+          </div>
+          <div>
             <p className="text-sm font-medium text-muted-foreground">Status</p>
             <Badge variant={report.status === "Completed" ? "default" : "secondary"}>
               {report.status}

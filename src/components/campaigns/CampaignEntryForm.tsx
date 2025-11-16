@@ -15,11 +15,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { useAppContext } from "@/context/AppContext";
 import { showSuccess, showError } from "@/utils/toast";
 import { v4 as uuidv4 } from "uuid";
-import { RefreshCcw } from "lucide-react";
+import { RefreshCcw, CalendarIcon } from "lucide-react";
 import { CampaignType } from "@/types";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 const campaignFormSchema = z.object({
   campaignId: z.string().min(1, { message: "Campaign ID is required." }),
@@ -30,6 +34,9 @@ const campaignFormSchema = z.object({
   panel3PasswordPlaceholder: z.string().optional(),
   campaignType: z.enum(["Normal", "Priority", "Urgent"], {
     required_error: "Please select a campaign type.",
+  }),
+  campaignDate: z.date({
+    required_error: "A campaign date is required.",
   }),
 });
 
@@ -51,6 +58,7 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
       panel3CredentialId: "",
       panel3PasswordPlaceholder: "",
       campaignType: "Normal", // Default campaign type
+      campaignDate: new Date(), // Default to today
     },
   });
 
@@ -87,6 +95,7 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
       panel3PasswordPlaceholder: values.panel3PasswordPlaceholder || undefined,
       status: "Pending",
       campaignType: values.campaignType,
+      campaignDate: values.campaignDate.toISOString(), // Save as ISO string
     });
     showSuccess("Campaign report created successfully!");
     form.reset({
@@ -97,6 +106,7 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
       panel3CredentialId: "",
       panel3PasswordPlaceholder: "",
       campaignType: "Normal",
+      campaignDate: new Date(),
     });
     onCampaignAdded?.(); // Call callback to close dialog
   }
@@ -153,6 +163,44 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
                   <SelectItem value="Urgent">Urgent</SelectItem>
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="campaignDate"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Campaign Date</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-[240px] pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(field.value, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
               <FormMessage />
             </FormItem>
           )}

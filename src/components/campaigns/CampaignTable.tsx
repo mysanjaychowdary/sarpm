@@ -37,19 +37,20 @@ export function CampaignTable({ reports }: CampaignTableProps) {
             <TableHead>Campaign ID</TableHead>
             <TableHead>Campaign Name</TableHead>
             <TableHead>Type</TableHead>
+            <TableHead>Campaign Date</TableHead> {/* New TableHead */}
             <TableHead>Panel</TableHead>
             <TableHead>Panel User</TableHead>
             <TableHead>Panel 3 User</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Created Date</TableHead>
             <TableHead>Updated Date</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead className="sticky right-0 bg-background z-10">Actions</TableHead> {/* Sticky Actions */}
           </TableRow>
         </TableHeader>
         <TableBody>
           {reportsToDisplay.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={10} className="text-center">No campaign reports yet.</TableCell>
+              <TableCell colSpan={11} className="text-center">No campaign reports yet.</TableCell>
             </TableRow>
           ) : (
             reportsToDisplay.map((report) => (
@@ -61,6 +62,7 @@ export function CampaignTable({ reports }: CampaignTableProps) {
                     {report.campaignType}
                   </Badge>
                 </TableCell>
+                <TableCell>{format(new Date(report.campaignDate), "PPP")}</TableCell> {/* Display Campaign Date */}
                 <TableCell>{getPanelName(report.panelId)}</TableCell>
                 <TableCell>{getPanelUserName(report.panelUserId)}</TableCell>
                 <TableCell>{getPanel3UserEmail(report.panel3CredentialId)}</TableCell>
@@ -71,7 +73,7 @@ export function CampaignTable({ reports }: CampaignTableProps) {
                 </TableCell>
                 <TableCell>{format(new Date(report.createdDate), "PPP p")}</TableCell>
                 <TableCell>{format(new Date(report.updatedDate), "PPP p")}</TableCell>
-                <TableCell className="flex space-x-2">
+                <TableCell className="sticky right-0 bg-background z-10 flex space-x-2"> {/* Sticky Actions */}
                   <Link to={`/campaigns/${report.id}`}>
                     <Button variant="outline" size="sm">View</Button>
                   </Link>

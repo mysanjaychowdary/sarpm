@@ -1,15 +1,37 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { CampaignEntryForm } from "@/components/campaigns/CampaignEntryForm";
 import { CampaignTable } from "@/components/campaigns/CampaignTable";
 import { PlusCircle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAppContext } from "@/context/AppContext";
+import { CampaignType } from "@/types";
 
 const CampaignsPage = () => {
+  const { campaignReports, panels } = useAppContext();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterPanel, setFilterPanel] = useState("all");
+  const [filterCampaignType, setFilterCampaignType] = useState("all");
+
+  const filteredCampaigns = useMemo(() => {
+    let filtered = campaignReports.filter(report => {
+      const matchesStatus = activeTab === "pending" ? report.status === "Pending" : report.status === "Completed";
+      const matchesSearch = report.campaignName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            report.campaignId.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesPanel = filterPanel === "all" || report.panelId === filterPanel;
+      const matchesCampaignType = filterCampaignType === "all" || report.campaignType === filterCampaignType;
+      return matchesStatus && matchesSearch && matchesPanel && matchesCampaignType;
+    });
+    return filtered;
+  }, [campaignReports, activeTab, searchTerm, filterPanel, filterCampaignType]);
 
   return (
     <div className="space-y-6">
@@ -32,12 +54,66 @@ const CampaignsPage = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>All Campaign Reports</CardTitle>
+          <CardTitle>Filter Campaigns</CardTitle>
         </CardHeader>
-        <CardContent>
-          <CampaignTable />
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Input
+            placeholder="Search by name or ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="col-span-full md:col-span-1"
+          />
+          <Select value={filterPanel} onValueChange={setFilterPanel}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by Panel" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Panels</SelectItem>
+              {panels.filter(p => p.name !== "Panel 3").map(panel => (
+                <SelectItem key={panel.id} value={panel.id}>{panel.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterCampaignType} onValueChange={setFilterCampaignType}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="Normal">Normal</SelectItem>
+              <SelectItem value="Priority">Priority</SelectItem>
+              <SelectItem value="Urgent">Urgent</SelectItem>
+            </SelectContent>
+          </Select>
         </CardContent>
       </Card>
+
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "pending" | "completed")}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="pending">Pending Reports</TabsTrigger>
+          <TabsTrigger value="completed">Completed Reports</TabsTrigger>
+        </TabsList>
+        <TabsContent value="pending">
+          <Card>
+            <CardHeader>
+              <CardTitle>Pending Campaign Reports</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CampaignTable reports={filteredCampaigns} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="completed">
+          <Card>
+            <CardHeader>
+              <CardTitle>Completed Campaign Reports</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CampaignTable reports={filteredCampaigns} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

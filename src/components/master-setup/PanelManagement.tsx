@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -18,9 +18,11 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useAppContext } from "@/context/AppContext";
 import { showSuccess } from "@/utils/toast";
 import { Panel } from "@/types"; // Import Panel type
+import { EditPanelForm } from "./EditPanelForm"; // Import EditPanelForm
 
 const panelFormSchema = z.object({
   name: z.string().min(2, { message: "Panel name must be at least 2 characters." }),
@@ -29,7 +31,10 @@ const panelFormSchema = z.object({
 });
 
 export function PanelManagement() {
-  const { panels, addPanel } = useAppContext();
+  const { panels, addPanel, deletePanel } = useAppContext();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedPanel, setSelectedPanel] = useState<Panel | null>(null);
 
   const form = useForm<z.infer<typeof panelFormSchema>>({
     resolver: zodResolver(panelFormSchema),
@@ -45,6 +50,25 @@ export function PanelManagement() {
     showSuccess("Panel added successfully!");
     form.reset();
   }
+
+  const handleEditClick = (panel: Panel) => {
+    setSelectedPanel(panel);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (panel: Panel) => {
+    setSelectedPanel(panel);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (selectedPanel) {
+      deletePanel(selectedPanel.id);
+      showSuccess(`Panel '${selectedPanel.name}' deleted successfully!`);
+      setIsDeleteDialogOpen(false);
+      setSelectedPanel(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -119,6 +143,7 @@ export function PanelManagement() {
                 <TableHead>Name</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Requires Panel 3</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -127,12 +152,48 @@ export function PanelManagement() {
                   <TableCell className="font-medium">{panel.name}</TableCell>
                   <TableCell>{panel.description}</TableCell>
                   <TableCell>{panel.requiresPanel3Credentials ? "Yes" : "No"}</TableCell>
+                  <TableCell>
+                    <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEditClick(panel)}>Edit</Button>
+                    <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(panel)}>Delete</Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+
+      {selectedPanel && (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Edit Panel: {selectedPanel.name}</DialogTitle>
+            </DialogHeader>
+            <EditPanelForm
+              panel={selectedPanel}
+              onPanelUpdated={() => setIsEditDialogOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {selectedPanel && (
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Deletion</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              Are you sure you want to delete the panel "<strong>{selectedPanel.name}</strong>"?
+              This action cannot be undone.
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+              <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

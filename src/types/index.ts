@@ -36,6 +36,7 @@ export interface CampaignReport {
   panel3PasswordPlaceholder?: string; // Optional, only for Panel 2 campaigns
   status: CampaignStatus;
   campaignType: CampaignType; // New field for campaign type
+  campaignDate: string; // New field for campaign date
   createdDate: string;
   updatedDate: string;
   createdByAdminId: string; // Placeholder for admin who created it
@@ -55,12 +56,14 @@ export interface AppContextType {
   panelUsers: PanelUser[];
   panel3Credentials: Panel3Credential[];
   campaignReports: CampaignReport[];
-  employees: Employee[]; // New state for employees
+  employees: Employee[];
   addPanel: (panel: Omit<Panel, "id">) => void;
+  updatePanel: (panel: Panel) => void; // New function to update panels
+  deletePanel: (id: string) => void; // New function to delete panels
   addPanelUser: (user: Omit<PanelUser, "id">) => void;
   addPanel3Credential: (credential: Omit<Panel3Credential, "id">) => void;
   addCampaignReport: (report: Omit<CampaignReport, "id" | "createdDate" | "updatedDate" | "createdByAdminId">) => void;
   updateCampaignStatus: (id: string, status: CampaignStatus) => void;
-  addEmployee: (employee: Omit<Employee, "id">) => void; // New function to add employees
-  updateEmployee: (employee: Employee) => void; // New function to update employees
+  addEmployee: (employee: Omit<Employee, "id">) => void;
+  updateEmployee: (employee: Employee) => void;
 }

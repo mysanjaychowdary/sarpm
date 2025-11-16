@@ -35,6 +35,19 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     setPanels((prev) => [...prev, { ...panel, id: uuidv4() }]);
   };
 
+  const updatePanel = (updatedPanel: Panel) => {
+    setPanels((prev) =>
+      prev.map((panel) => (panel.id === updatedPanel.id ? updatedPanel : panel))
+    );
+  };
+
+  const deletePanel = (id: string) => {
+    setPanels((prev) => prev.filter((panel) => panel.id !== id));
+    // Also delete associated panel users and campaign reports in a real app
+    setPanelUsers((prev) => prev.filter((user) => user.panelId !== id));
+    setCampaignReports((prev) => prev.filter((report) => report.panelId !== id));
+  };
+
   const addPanelUser = (user: Omit<PanelUser, "id">) => {
     setPanelUsers((prev) => [...prev, { ...user, id: uuidv4() }]);
   };
@@ -76,14 +89,16 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     panelUsers,
     panel3Credentials,
     campaignReports,
-    employees, // Include employees in context value
+    employees,
     addPanel,
+    updatePanel,
+    deletePanel,
     addPanelUser,
     addPanel3Credential,
     addCampaignReport,
     updateCampaignStatus,
-    addEmployee, // Include addEmployee in context value
-    updateEmployee, // Include updateEmployee in context value
+    addEmployee,
+    updateEmployee,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
