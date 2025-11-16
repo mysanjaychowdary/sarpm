@@ -30,6 +30,7 @@ const Login = () => {
             }}
             theme="light" // Or "dark" based on your app's theme
             redirectTo={window.location.origin + '/dashboard'}
+            view="sign_in" // This will only show the sign-in form
           />
         </CardContent>
       </Card>
