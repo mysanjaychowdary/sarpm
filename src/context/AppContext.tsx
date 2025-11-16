@@ -7,7 +7,7 @@ import { showSuccess, showError } from "@/utils/toast";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppContextProvider = ({ children }: { ReactNode }) => {
+export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [panels, setPanels] = useState<Panel[]>([]);
   const [panelUsers, setPanelUsers] = useState<PanelUser[]>([]);
   const [panel3Credentials, setPanel3Credentials] = useState<Panel3Credential[]>([]);
@@ -80,8 +80,8 @@ export const AppContextProvider = ({ children }: { ReactNode }) => {
       throw error;
     }
     setPanels((prev) => prev.filter((panel) => panel.id !== id));
-    setPanelUsers((prev) => prev.filter((user) => user.panelId !== id)); // Cascade delete in UI
-    setCampaignReports((prev) => prev.filter((report) => report.panelId !== id)); // Cascade delete in UI
+    setPanelUsers((prev) => prev.filter((user) => user.panel_id !== id)); // Cascade delete in UI
+    setCampaignReports((prev) => prev.filter((report) => report.panel_id !== id)); // Cascade delete in UI
   };
 
   const addPanelUser = async (user: Omit<PanelUser, "id">) => {
@@ -102,7 +102,7 @@ export const AppContextProvider = ({ children }: { ReactNode }) => {
     setPanel3Credentials((prev) => [...prev, data[0]]);
   };
 
-  const addCampaignReport = async (report: Omit<CampaignReport, "id" | "createdDate" | "updatedDate" | "createdByAdminId">) => {
+  const addCampaignReport = async (report: Omit<CampaignReport, "id" | "created_date" | "updated_date" | "created_by_admin_id">) => {
     const now = new Date().toISOString();
     const newReport = { ...report, created_date: now, updated_date: now, created_by_admin_id: "admin_user_id" }; // Placeholder admin ID
     const { data, error } = await supabase.from('campaign_reports').insert(newReport).select();

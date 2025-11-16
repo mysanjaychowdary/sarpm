@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useForm } from "@hookform/react-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -26,16 +26,16 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
 const campaignFormSchema = z.object({
-  campaign_id: z.string().min(1, { message: "Campaign ID is required." }), // Changed to snake_case
-  campaign_name: z.string().min(2, { message: "Campaign name must be at least 2 characters." }), // Changed to snake_case
-  panel_id: z.string().min(1, { message: "Please select a panel." }), // Changed to snake_case
-  panel_user_id: z.string().min(1, { message: "Please select a panel user." }), // Changed to snake_case
-  panel3_credential_id: z.string().optional(), // Changed to snake_case
-  panel3_password_placeholder: z.string().optional(), // Changed to snake_case
-  campaign_type: z.enum(["Normal", "Priority", "Urgent"], { // Changed to snake_case
+  campaign_id: z.string().min(1, { message: "Campaign ID is required." }), // Auto-generate a short ID
+  campaign_name: z.string().min(2, { message: "Campaign name must be at least 2 characters." }),
+  panel_id: z.string().min(1, { message: "Please select a panel." }),
+  panel_user_id: z.string().min(1, { message: "Please select a panel user." }),
+  panel3_credential_id: z.string().optional(),
+  panel3_password_placeholder: z.string().optional(),
+  campaign_type: z.enum(["Normal", "Priority", "Urgent"], {
     required_error: "Please select a campaign type.",
   }),
-  campaign_date: z.date({ // Changed to snake_case
+  campaign_date: z.date({
     required_error: "A campaign date is required.",
   }),
 });
@@ -67,8 +67,8 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
 
   useEffect(() => {
     const panel = panels.find(p => p.id === selectedPanelId);
-    setSelectedPanelRequiresPanel3(panel?.requires_panel3_credentials || false); // Changed to snake_case
-    if (!panel?.requires_panel3_credentials) { // Changed to snake_case
+    setSelectedPanelRequiresPanel3(panel?.requires_panel3_credentials || false);
+    if (!panel?.requires_panel3_credentials) {
       form.setValue("panel3_credential_id", "");
       form.setValue("panel3_password_placeholder", "");
     }

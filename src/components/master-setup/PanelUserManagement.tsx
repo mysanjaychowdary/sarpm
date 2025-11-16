@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PlusCircle, Eye, EyeOff, Copy } from "lucide-react";
 import { PanelUserForm } from "./PanelUserForm";
-import { useForm } from "@hookform/react-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,7 @@ import { Panel3Credential } from "@/types";
 
 const panel3CredentialFormSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
-  api_password_placeholder: z.string().min(6, { message: "API password must be at least 6 characters." }), // Changed to snake_case
+  api_password_placeholder: z.string().min(6, { message: "API password must be at least 6 characters." }),
 });
 
 export function PanelUserManagement() {
@@ -140,18 +140,18 @@ export function PanelUserManagement() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {panelUsers.filter(user => user.panel_id === panel.id).length === 0 ? ( // Changed to snake_case
+                    {panelUsers.filter(user => user.panel_id === panel.id).length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={4} className="text-center">No users for {panel.name} yet.</TableCell>
                       </TableRow>
                     ) : (
                       panelUsers
-                        .filter((user) => user.panel_id === panel.id) // Changed to snake_case
+                        .filter((user) => user.panel_id === panel.id)
                         .map((user) => (
                           <TableRow key={user.id}>
                             <TableCell className="font-medium">{user.username}</TableCell>
                             <TableCell>{user.email}</TableCell>
-                            <TableCell>{user.is_active ? "Active" : "Inactive"}</TableCell> {/* Changed to snake_case */}
+                            <TableCell>{user.is_active ? "Active" : "Inactive"}</TableCell>
                             <TableCell>
                               <Button variant="outline" size="sm" className="mr-2">Edit</Button>
                               <Button variant="destructive" size="sm">Delete</Button>
@@ -234,7 +234,7 @@ export function PanelUserManagement() {
                           <div className="flex items-center space-x-2">
                             <span>
                               {showPasswords[credential.id]
-                                ? credential.api_password_placeholder // Changed to snake_case
+                                ? credential.api_password_placeholder
                                 : "********"}
                             </span>
                             <Button
@@ -253,7 +253,7 @@ export function PanelUserManagement() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => copyToClipboard(credential.api_password_placeholder)} // Changed to snake_case
+                                onClick={() => copyToClipboard(credential.api_password_placeholder)}
                                 className="h-8 w-8 p-0"
                               >
                                 <Copy className="h-4 w-4" />

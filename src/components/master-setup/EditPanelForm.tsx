@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useForm } from "@hookform/react-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ const panelFormSchema = z.object({
   id: z.string(),
   name: z.string().min(2, { message: "Panel name must be at least 2 characters." }),
   description: z.string().optional(),
-  requires_panel3_credentials: z.boolean().default(false), // Changed to snake_case
+  requires_panel3_credentials: z.boolean().default(false),
 });
 
 interface EditPanelFormProps {

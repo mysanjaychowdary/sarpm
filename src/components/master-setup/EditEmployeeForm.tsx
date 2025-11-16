@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useForm } from "@hookform/react-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -25,11 +25,11 @@ const employeeFormSchema = z.object({
   id: z.string(), // Include ID for updates
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
-  password_placeholder: z.string().optional().or(z.literal("")), // Changed to snake_case
+  password_placeholder: z.string().optional().or(z.literal("")),
   role: z.enum(["Admin", "Campaign Manager"], {
     required_error: "Please select a role.",
   }),
-  is_active: z.boolean().default(true), // Changed to snake_case
+  is_active: z.boolean().default(true),
 });
 
 interface EditEmployeeFormProps {
