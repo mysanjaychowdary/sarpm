@@ -3,14 +3,14 @@
 import React, { useState } from "react";
 import { SidebarNav } from "./SidebarNav";
 import { Home, ListChecks, LayoutDashboard, Users, Briefcase, LogOut } from "lucide-react";
-import { useSession } from "@/context/SessionContext"; // Import useSession
+import { useSession } from "@/context/SessionContext";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Outlet } from "react-router-dom"; // Import Outlet
 import { showError, showSuccess } from "@/utils/toast";
 
-const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isLoadingSession, isAdmin, isCampaignManager } = useSession(); // Get user and roles from session
+const MainLayout: React.FC = () => { // Removed children prop from type
+  const { user, isLoadingSession, isAdmin, isCampaignManager } = useSession();
   const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);
   const navigate = useNavigate();
 
@@ -29,20 +29,19 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   };
 
-  // Define sidebar items based on roles
   const getSidebarNavItems = () => {
     const items = [
       {
         title: "Dashboard",
         href: "/dashboard",
         icon: Home,
-        roles: ["Admin", "Campaign Manager"], // Both can see dashboard
+        roles: ["Admin", "Campaign Manager"],
       },
       {
         title: "Campaigns",
         href: "/campaigns",
         icon: ListChecks,
-        roles: ["Admin", "Campaign Manager"], // Both can see campaigns
+        roles: ["Admin", "Campaign Manager"],
       },
     ];
 
@@ -74,10 +73,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const sidebarNavItems = getSidebarNavItems();
 
   if (isLoadingSession) {
-    return null; // Or a loading spinner for the layout
+    return null;
   }
 
-  // If not logged in, don't render the layout, let the Login page handle it
   if (!user) {
     return null;
   }
@@ -97,7 +95,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <LogOut className="mr-2 h-4 w-4" /> Logout
           </Button>
         </header>
-        {children}
+        <Outlet /> {/* Render nested routes here */}
       </div>
     </div>
   );
