@@ -4,9 +4,20 @@ import React from "react";
 import { PanelManagement } from "@/components/master-setup/PanelManagement";
 import { useAppContext } from "@/context/AppContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSession } from "@/context/SessionContext"; // Import useSession
+import { Navigate } from "react-router-dom";
 
 const PanelManagementPage = () => {
   const { isLoading, error } = useAppContext();
+  const { isAdmin, isLoadingSession } = useSession(); // Get user role
+
+  if (isLoadingSession) {
+    return null; // Or a loading spinner
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/dashboard" replace />; // Redirect if not admin
+  }
 
   if (isLoading) {
     return (

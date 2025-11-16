@@ -12,9 +12,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppContext } from "@/context/AppContext";
 import { CampaignType } from "@/types";
+import { useSession } from "@/context/SessionContext"; // Import useSession
 
 const CampaignsPage = () => {
   const { campaignReports, panels, isLoading, error } = useAppContext();
+  const { isAdmin, isCampaignManager } = useSession(); // Get user roles
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,10 +26,10 @@ const CampaignsPage = () => {
   const filteredCampaigns = useMemo(() => {
     let filtered = campaignReports.filter(report => {
       const matchesStatus = activeTab === "pending" ? report.status === "Pending" : report.status === "Completed";
-      const matchesSearch = report.campaign_name.toLowerCase().includes(searchTerm.toLowerCase()) || // Changed to snake_case
-                            report.campaign_id.toLowerCase().includes(searchTerm.toLowerCase()); // Changed to snake_case
-      const matchesPanel = filterPanel === "all" || report.panel_id === filterPanel; // Changed to snake_case
-      const matchesCampaignType = filterCampaignType === "all" || report.campaign_type === filterCampaignType; // Changed to snake_case
+      const matchesSearch = report.campaign_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            report.campaign_id.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesPanel = filterPanel === "all" || report.panel_id === filterPanel;
+      const matchesCampaignType = filterCampaignType === "all" || report.campaign_type === filterCampaignType;
       return matchesStatus && matchesSearch && matchesPanel && matchesCampaignType;
     });
     return filtered;
@@ -63,19 +65,21 @@ const CampaignsPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Campaigns</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add New Campaign
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create New Campaign Report</DialogTitle>
-            </DialogHeader>
-            <CampaignEntryForm onCampaignAdded={() => setIsDialogOpen(false)} />
-          </DialogContent>
-        </Dialog>
+        {(isAdmin || isCampaignManager) && ( // Only Admin or Campaign Manager can add new campaigns
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" /> Add New Campaign
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Create New Campaign Report</DialogTitle>
+              </DialogHeader>
+              <CampaignEntryForm onCampaignAdded={() => setIsDialogOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <Card>

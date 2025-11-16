@@ -2,48 +2,85 @@
 
 import React, { useState } from "react";
 import { SidebarNav } from "./SidebarNav";
-import { Home, ListChecks, LayoutDashboard, Users, Key, Briefcase } from "lucide-react";
+import { Home, ListChecks, LayoutDashboard, Users, Briefcase, LogOut } from "lucide-react";
+import { useSession } from "@/context/SessionContext"; // Import useSession
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { showError, showSuccess } from "@/utils/toast";
 
-const sidebarNavItems = [
-  {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: Home,
-  },
-  {
-    title: "Campaigns",
-    href: "/campaigns",
-    icon: ListChecks,
-  },
-  {
-    title: "Panel Management",
-    href: "/settings/panels",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Panel User Management",
-    href: "/settings/panel-users",
-    icon: Users,
-  },
-  {
-    title: "Employee Management",
-    href: "/settings/employees",
-    icon: Briefcase,
-  },
-];
-
-interface MainLayoutProps {
-  children: React.ReactNode;
-}
-
-const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, isLoadingSession, isAdmin, isCampaignManager } = useSession(); // Get user and roles from session
   const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);
+  const navigate = useNavigate();
 
   const toggleSidebar = () => {
     setIsSidebarMinimized(!isSidebarMinimized);
   };
 
-  console.log("MainLayout: Rendering.");
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      showSuccess("Logged out successfully!");
+      navigate("/login");
+    } catch (error: any) {
+      showError("Failed to log out: " + error.message);
+    }
+  };
+
+  // Define sidebar items based on roles
+  const getSidebarNavItems = () => {
+    const items = [
+      {
+        title: "Dashboard",
+        href: "/dashboard",
+        icon: Home,
+        roles: ["Admin", "Campaign Manager"], // Both can see dashboard
+      },
+      {
+        title: "Campaigns",
+        href: "/campaigns",
+        icon: ListChecks,
+        roles: ["Admin", "Campaign Manager"], // Both can see campaigns
+      },
+    ];
+
+    if (isAdmin) {
+      items.push(
+        {
+          title: "Panel Management",
+          href: "/settings/panels",
+          icon: LayoutDashboard,
+          roles: ["Admin"],
+        },
+        {
+          title: "Panel User Management",
+          href: "/settings/panel-users",
+          icon: Users,
+          roles: ["Admin"],
+        },
+        {
+          title: "Employee Management",
+          href: "/settings/employees",
+          icon: Briefcase,
+          roles: ["Admin"],
+        }
+      );
+    }
+    return items;
+  };
+
+  const sidebarNavItems = getSidebarNavItems();
+
+  if (isLoadingSession) {
+    return null; // Or a loading spinner for the layout
+  }
+
+  // If not logged in, don't render the layout, let the Login page handle it
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -54,6 +91,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         className={isSidebarMinimized ? "w-16" : "w-64"}
       />
       <div className={`flex-1 p-6 overflow-auto transition-all duration-300 ${isSidebarMinimized ? "ml-0" : "ml-0"}`}>
+        <header className="flex justify-between items-center pb-4 border-b mb-6">
+          <h1 className="text-2xl font-semibold">Welcome, {user?.email}!</h1>
+          <Button variant="ghost" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" /> Logout
+          </Button>
+        </header>
         {children}
       </div>
     </div>
