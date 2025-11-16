@@ -7,7 +7,7 @@ import { AppContextProvider } from "./context/AppContext";
 import MainLayout from "./components/layout/MainLayout";
 import Dashboard from "./pages/Dashboard";
 import CampaignsPage from "./pages/CampaignsPage";
-import PanelManagementPage from "./pages/pages/PanelManagementPage";
+import PanelManagementPage from "./pages/PanelManagementPage"; // Corrected import path
 import PanelUserManagementPage from "./pages/PanelUserManagementPage";
 import CampaignDetailsPage from "./pages/CampaignDetailsPage";
 import NotFound from "./pages/NotFound";
