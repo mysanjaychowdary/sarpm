@@ -17,9 +17,9 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AppContextProvider>
-        <BrowserRouter>
+    <AppContextProvider>
+      <BrowserRouter>
+        <TooltipProvider> {/* Moved TooltipProvider here */}
           <MainLayout>
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -33,9 +33,9 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </MainLayout>
-        </BrowserRouter>
-      </AppContextProvider>
-    </TooltipProvider>
+        </TooltipProvider>
+      </BrowserRouter>
+    </AppContextProvider>
     <Toaster />
     <Sonner />
   </QueryClientProvider>
