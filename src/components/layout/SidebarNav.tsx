@@ -1,6 +1,6 @@
 "use client";
 
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Home, Settings } from "lucide-react";
 
@@ -13,12 +13,10 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
 }
 
 export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
-  const location = useLocation();
-
   return (
     <nav
       className={cn(
-        "flex flex-col space-y-1 p-4 border-r bg-sidebar h-full shadow-lg rounded-r-lg",
+        "flex flex-col space-y-1 p-4 border-r bg-sidebar h-full",
         className
       )}
       {...props}
@@ -28,13 +26,11 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
           key={item.href}
           to={item.href}
           className={cn(
-            "flex items-center gap-3 rounded-lg px-4 py-3 text-base transition-all hover:bg-sidebar-accent hover:text-sidebar-primary", // Increased px, py, and text-base
-            location.pathname === item.href
-              ? "bg-primary text-primary-foreground"
-              : "text-sidebar-foreground"
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all hover:text-sidebar-primary",
+            // Add active state styling if needed
           )}
         >
-          <item.icon className="h-5 w-5" /> {/* Slightly larger icons */}
+          <item.icon className="h-4 w-4" />
           {item.title}
         </Link>
       ))}

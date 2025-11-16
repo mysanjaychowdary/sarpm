@@ -62,8 +62,6 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Custom color for the new theme
-        'primary-orange': '#FC4100', 
       },
       borderRadius: {
         lg: "var(--radius)",

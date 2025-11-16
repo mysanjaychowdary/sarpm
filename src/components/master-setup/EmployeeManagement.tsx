@@ -24,12 +24,12 @@ export function EmployeeManagement() {
 
   return (
     <div className="space-y-6">
-      <Card className="shadow-lg"> {/* Added shadow-lg */}
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-xl font-bold text-gray-800">Existing Employees</CardTitle>
+          <CardTitle className="text-2xl font-bold">Existing Employees</CardTitle>
           <Dialog open={isAddEmployeeDialogOpen} onOpenChange={setIsAddEmployeeDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary-orange hover:bg-primary-orange/90 text-white shadow-lg"> {/* Orange button */}
+              <Button>
                 <PlusCircle className="mr-2 h-4 w-4" /> Add New Employee
               </Button>
             </DialogTrigger>
@@ -68,12 +68,12 @@ export function EmployeeManagement() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="mr-2 shadow-sm" // Added shadow-sm
+                        className="mr-2"
                         onClick={() => handleEditClick(employee)}
                       >
                         Edit
                       </Button>
-                      <Button variant="destructive" size="sm" className="shadow-sm">Delete</Button> {/* Added shadow-sm */}
+                      <Button variant="destructive" size="sm">Delete</Button>
                     </TableCell>
                   </TableRow>
                 ))

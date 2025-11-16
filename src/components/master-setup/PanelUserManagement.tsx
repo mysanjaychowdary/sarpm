@@ -68,19 +68,19 @@ export function PanelUserManagement() {
 
   return (
     <div className="space-y-6">
-      <Card className="shadow-lg"> {/* Added shadow-lg */}
+      <Card>
         <CardHeader>
-          <CardTitle className="text-xl font-bold text-gray-800">Panel User & Credential Management</CardTitle>
+          <CardTitle>Panel User & Credential Management</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue={panelsForUsers[0]?.id || "panel3-credentials"} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3 bg-white shadow-md rounded-lg"> {/* Styled TabsList */}
+            <TabsList>
               {panelsForUsers.map((panel) => (
-                <TabsTrigger key={panel.id} value={panel.id} className="data-[state=active]:bg-primary-orange data-[state=active]:text-white data-[state=active]:shadow-sm">
+                <TabsTrigger key={panel.id} value={panel.id}>
                   {panel.name} Users
                 </TabsTrigger>
               ))}
-              <TabsTrigger value="panel3-credentials" className="data-[state=active]:bg-primary-orange data-[state=active]:text-white data-[state=active]:shadow-sm">Panel 3 Credentials</TabsTrigger> {/* Orange active tab */}
+              <TabsTrigger value="panel3-credentials">Panel 3 Credentials</TabsTrigger>
             </TabsList>
 
             {panelsForUsers.map((panel) => (
@@ -88,7 +88,7 @@ export function PanelUserManagement() {
                 <div className="flex justify-end mb-4">
                   <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button className="bg-primary-orange hover:bg-primary-orange/90 text-white shadow-lg"> {/* Orange button */}
+                      <Button>
                         <PlusCircle className="mr-2 h-4 w-4" /> Add New User
                       </Button>
                     </DialogTrigger>
@@ -123,8 +123,8 @@ export function PanelUserManagement() {
                             <TableCell>{user.email}</TableCell>
                             <TableCell>{user.isActive ? "Active" : "Inactive"}</TableCell>
                             <TableCell>
-                              <Button variant="outline" size="sm" className="mr-2 shadow-sm">Edit</Button> {/* Added shadow-sm */}
-                              <Button variant="destructive" size="sm" className="shadow-sm">Delete</Button> {/* Added shadow-sm */}
+                              <Button variant="outline" size="sm" className="mr-2">Edit</Button>
+                              <Button variant="destructive" size="sm">Delete</Button>
                             </TableCell>
                           </TableRow>
                         ))
@@ -138,7 +138,7 @@ export function PanelUserManagement() {
               <div className="flex justify-end mb-4">
                 <Dialog open={isAddPanel3CredentialDialogOpen} onOpenChange={setIsAddPanel3CredentialDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className="bg-primary-orange hover:bg-primary-orange/90 text-white shadow-lg"> {/* Orange button */}
+                    <Button>
                       <PlusCircle className="mr-2 h-4 w-4" /> Add New Panel 3 Credential
                     </Button>
                   </DialogTrigger>
@@ -155,7 +155,7 @@ export function PanelUserManagement() {
                             <FormItem>
                               <FormLabel>Email / Login ID</FormLabel>
                               <FormControl>
-                                <Input type="email" placeholder="e.g., p3user@panel3.com" {...field} className="shadow-sm" /> {/* Added shadow-sm */}
+                                <Input type="email" placeholder="e.g., p3user@panel3.com" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -168,7 +168,7 @@ export function PanelUserManagement() {
                             <FormItem>
                               <FormLabel>API Password / Access Password</FormLabel>
                               <FormControl>
-                                <Input type="password" placeholder="Enter API password" {...field} className="shadow-sm" /> {/* Added shadow-sm */}
+                                <Input type="password" placeholder="Enter API password" {...field} />
                               </FormControl>
                               <FormDescription>
                                 (In a real app, this would be encrypted)
@@ -177,7 +177,7 @@ export function PanelUserManagement() {
                             </FormItem>
                           )}
                         />
-                        <Button type="submit" className="bg-primary-orange hover:bg-primary-orange/90 text-white shadow-lg">Add Credential</Button> {/* Orange button */}
+                        <Button type="submit">Add Credential</Button>
                       </form>
                     </Form>
                   </DialogContent>
@@ -232,7 +232,7 @@ export function PanelUserManagement() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Button variant="outline" size="sm" className="shadow-sm">Update</Button> {/* Added shadow-sm */}
+                          <Button variant="outline" size="sm">Update</Button>
                         </TableCell>
                       </TableRow>
                     ))

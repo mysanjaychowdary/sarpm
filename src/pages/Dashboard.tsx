@@ -23,12 +23,12 @@ const Dashboard = () => {
   const recentlyAddedReports = campaignReports.slice(0, 5); // Show top 5 most recent overall
 
   return (
-    <div className="space-y-6 p-4 bg-gray-50 min-h-screen rounded-lg shadow-inner"> {/* Added bg-gray-50, rounded-lg, shadow-inner */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-4xl font-extrabold text-gray-900">Campaign Dashboard</h1> {/* Larger, bolder title */}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Campaign Dashboard</h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-primary-orange hover:bg-primary-orange/90 text-white shadow-lg"> {/* Orange button */}
+            <Button>
               <PlusCircle className="mr-2 h-4 w-4" /> Add New Campaign
             </Button>
           </DialogTrigger>
@@ -42,62 +42,62 @@ const Dashboard = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="shadow-lg border-l-4 border-primary-orange"> {/* Card with orange border and shadow */}
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-semibold text-gray-700">Today's Pending Reports</CardTitle>
-            <span className="text-3xl font-bold text-primary-orange">{todayPendingReports.length}</span> {/* Orange count */}
+            <CardTitle className="text-sm font-medium">Today's Pending Reports</CardTitle>
+            <span className="text-2xl font-bold">{todayPendingReports.length}</span>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Reports created today that are still pending.
             </p>
           </CardContent>
         </Card>
-        <Card className="shadow-lg border-l-4 border-green-500"> {/* Card with green border and shadow */}
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-semibold text-gray-700">Today's Completed Reports</CardTitle>
-            <span className="text-3xl font-bold text-green-600">{todayCompletedReports.length}</span> {/* Green count */}
+            <CardTitle className="text-sm font-medium">Today's Completed Reports</CardTitle>
+            <span className="text-2xl font-bold">{todayCompletedReports.length}</span>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Reports created today that have been completed.
             </p>
           </CardContent>
         </Card>
-        <Card className="shadow-lg border-l-4 border-blue-500"> {/* Card with blue border and shadow */}
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-semibold text-gray-700">Total Campaigns</CardTitle>
-            <span className="text-3xl font-bold text-blue-600">{campaignReports.length}</span> {/* Blue count */}
+            <CardTitle className="text-sm font-medium">Total Campaigns</CardTitle>
+            <span className="text-2xl font-bold">{campaignReports.length}</span>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               All campaign reports in the system.
             </p>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-xl font-bold text-gray-800">Today's Pending Campaign Reports</CardTitle>
+          <CardTitle>Today's Pending Campaign Reports</CardTitle>
         </CardHeader>
         <CardContent>
           <CampaignTable reports={todayPendingReports} />
         </CardContent>
       </Card>
 
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-xl font-bold text-gray-800">Today's Completed Campaign Reports</CardTitle>
+          <CardTitle>Today's Completed Campaign Reports</CardTitle>
         </CardHeader>
         <CardContent>
           <CampaignTable reports={todayCompletedReports} />
         </CardContent>
       </Card>
 
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-xl font-bold text-gray-800">Recently Added Campaign Reports</CardTitle>
+          <CardTitle>Recently Added Campaign Reports</CardTitle>
         </CardHeader>
         <CardContent>
           <CampaignTable reports={recentlyAddedReports} />
