@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } => "react-router-dom";
 import { showError } from "@/utils/toast";
 
 interface SessionContextType {
@@ -21,38 +21,47 @@ export const SessionContextProvider = ({ children }: { children: ReactNode }) =>
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("SessionContext: Setting up auth state change listener.");
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
+        console.log("SessionContext: Auth state changed - event:", event, "session:", currentSession);
         if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
           setSession(currentSession);
           setUser(currentSession?.user || null);
           if (currentSession && window.location.pathname === '/login') {
+            console.log("SessionContext: Signed in/Initial session, redirecting to /dashboard.");
             navigate('/dashboard', { replace: true });
           }
         } else if (event === 'SIGNED_OUT') {
           setSession(null);
           setUser(null);
+          console.log("SessionContext: Signed out, redirecting to /login.");
           navigate('/login', { replace: true });
         }
-        // AUTH_API_ERROR is not a valid AuthChangeEvent type and Session does not have an error property.
-        // Specific auth errors are handled by the Auth component itself or where the auth action is initiated.
         setIsLoading(false);
+        console.log("SessionContext: isLoading set to false.");
       }
     );
 
     // Initial session check
+    console.log("SessionContext: Performing initial session check.");
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      console.log("SessionContext: Initial session data:", initialSession);
       setSession(initialSession);
       setUser(initialSession?.user || null);
       setIsLoading(false);
+      console.log("SessionContext: Initial check done, isLoading set to false.");
       if (!initialSession && window.location.pathname !== '/login') {
+        console.log("SessionContext: No initial session, not on login page, redirecting to /login.");
         navigate('/login', { replace: true });
       } else if (initialSession && window.location.pathname === '/login') {
+        console.log("SessionContext: Initial session found, on login page, redirecting to /dashboard.");
         navigate('/dashboard', { replace: true });
       }
     });
 
     return () => {
+      console.log("SessionContext: Unsubscribing from auth listener.");
       authListener.subscription.unsubscribe();
     };
   }, [navigate]);

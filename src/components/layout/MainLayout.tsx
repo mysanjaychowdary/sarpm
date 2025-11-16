@@ -43,13 +43,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     setIsSidebarMinimized(!isSidebarMinimized);
   };
 
+  console.log("MainLayout: Rendering.");
+
   return (
     <div className="flex min-h-screen bg-background">
       <SidebarNav
         items={sidebarNavItems}
         isMinimized={isSidebarMinimized}
         onToggleMinimize={toggleSidebar}
-        className={isSidebarMinimized ? "w-16" : "w-64"} // Adjust width based on state
+        className={isSidebarMinimized ? "w-16" : "w-64"}
       />
       <div className={`flex-1 p-6 overflow-auto transition-all duration-300 ${isSidebarMinimized ? "ml-0" : "ml-0"}`}>
         {children}

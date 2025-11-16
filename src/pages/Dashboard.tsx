@@ -14,15 +14,18 @@ const Dashboard = () => {
   const { campaignReports, isLoading, error } = useAppContext();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  console.log("Dashboard: Rendering. isLoading:", isLoading, "error:", error, "campaignReports count:", campaignReports.length);
+
   const todayReports = useMemo(() => {
-    return campaignReports.filter(report => isToday(new Date(report.created_date))); // Changed to snake_case
+    return campaignReports.filter(report => isToday(new Date(report.created_date)));
   }, [campaignReports]);
 
   const todayPendingReports = todayReports.filter(report => report.status === "Pending");
   const todayCompletedReports = todayReports.filter(report => report.status === "Completed");
-  const recentlyAddedReports = campaignReports.slice(0, 5); // Show top 5 most recent overall
+  const recentlyAddedReports = campaignReports.slice(0, 5);
 
   if (isLoading) {
+    console.log("Dashboard: Showing loading state.");
     return (
       <Card>
         <CardHeader>
@@ -36,6 +39,7 @@ const Dashboard = () => {
   }
 
   if (error) {
+    console.log("Dashboard: Showing error state.");
     return (
       <Card>
         <CardHeader>
