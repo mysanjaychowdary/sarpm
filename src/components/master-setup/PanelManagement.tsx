@@ -72,9 +72,9 @@ export function PanelManagement() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="shadow-lg"> {/* Added shadow-lg */}
         <CardHeader>
-          <CardTitle>Add New Panel</CardTitle>
+          <CardTitle className="text-xl font-bold text-gray-800">Add New Panel</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -86,7 +86,7 @@ export function PanelManagement() {
                   <FormItem>
                     <FormLabel>Panel Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Panel 1" {...field} />
+                      <Input placeholder="e.g., Panel 1" {...field} className="shadow-sm" /> {/* Added shadow-sm */}
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -99,7 +99,7 @@ export function PanelManagement() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Input placeholder="Purpose of the panel" {...field} />
+                      <Input placeholder="Purpose of the panel" {...field} className="shadow-sm" /> {/* Added shadow-sm */}
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -109,7 +109,7 @@ export function PanelManagement() {
                 control={form.control}
                 name="requiresPanel3Credentials"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm"> {/* Added shadow-sm */}
                     <FormControl>
                       <Checkbox
                         checked={field.value}
@@ -126,15 +126,15 @@ export function PanelManagement() {
                   </FormItem>
                 )}
               />
-              <Button type="submit">Add Panel</Button>
+              <Button type="submit" className="bg-primary-orange hover:bg-primary-orange/90 text-white shadow-lg">Add Panel</Button> {/* Orange button */}
             </form>
           </Form>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="shadow-lg"> {/* Added shadow-lg */}
         <CardHeader>
-          <CardTitle>Existing Panels</CardTitle>
+          <CardTitle className="text-xl font-bold text-gray-800">Existing Panels</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -153,8 +153,8 @@ export function PanelManagement() {
                   <TableCell>{panel.description}</TableCell>
                   <TableCell>{panel.requiresPanel3Credentials ? "Yes" : "No"}</TableCell>
                   <TableCell>
-                    <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEditClick(panel)}>Edit</Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(panel)}>Delete</Button>
+                    <Button variant="outline" size="sm" className="mr-2 shadow-sm" onClick={() => handleEditClick(panel)}>Edit</Button> {/* Added shadow-sm */}
+                    <Button variant="destructive" size="sm" className="shadow-sm" onClick={() => handleDeleteClick(panel)}>Delete</Button> {/* Added shadow-sm */}
                   </TableCell>
                 </TableRow>
               ))}
