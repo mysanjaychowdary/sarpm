@@ -39,7 +39,7 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <div className="flex min-h-screen bg-background">
-      <SidebarNav items={sidebarNavItems} className="w-64" />
+      <SidebarNav items={sidebarNavItems} className="w-64 flex-shrink-0" /> {/* Added flex-shrink-0 */}
       <div className="flex-1 p-6 overflow-auto">
         {children}
       </div>
