@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
-import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus, Employee } from "@/types";
+import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
 
@@ -12,7 +12,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [panelUsers, setPanelUsers] = useState<PanelUser[]>([]);
   const [panel3Credentials, setPanel3Credentials] = useState<Panel3Credential[]>([]);
   const [campaignReports, setCampaignReports] = useState<CampaignReport[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  // Removed employees state
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,12 +46,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
       setCampaignReports(campaignReportsData || []);
       console.log("AppContext: Campaign reports fetched:", campaignReportsData?.length);
 
-      console.log("AppContext: Fetching employees...");
-      const { data: employeesData, error: employeesError } = await supabase.from('employees').select('*');
-      if (employeesError) throw employeesError;
-      setEmployees(employeesData || []);
-      console.log("AppContext: Employees fetched:", employeesData?.length);
-
+      // Removed fetching employees
     } catch (err: any) {
       console.error("AppContext: Error fetching data:", err.message);
       showError("Failed to load data: " + err.message);
@@ -154,38 +149,14 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     showSuccess("Campaign status updated successfully!");
   };
 
-  const addEmployee = async (employee: Omit<Employee, "id">) => {
-    console.log("AppContext: Adding employee:", employee.name);
-    const { data, error } = await supabase.from('employees').insert(employee).select();
-    if (error) {
-      showError("Failed to add employee: " + error.message);
-      throw error;
-    }
-    setEmployees((prev) => [...prev, data[0]]);
-    showSuccess("Employee added successfully!");
-  };
-
-  const updateEmployee = async (updatedEmployee: Employee) => {
-    console.log("AppContext: Updating employee:", updatedEmployee.name);
-    const { data, error } = await supabase.from('employees').update(updatedEmployee).eq('id', updatedEmployee.id).select();
-    if (error) {
-      showError("Failed to update employee: " + error.message);
-      throw error;
-    }
-    setEmployees((prev) =>
-      prev.map((employee) =>
-        employee.id === updatedEmployee.id ? data[0] : employee
-      )
-    );
-    showSuccess("Employee updated successfully!");
-  };
+  // Removed addEmployee and updateEmployee functions
 
   const value = {
     panels,
     panelUsers,
     panel3Credentials,
     campaignReports,
-    employees,
+    // Removed employees from value
     addPanel,
     updatePanel,
     deletePanel,
@@ -193,8 +164,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     addPanel3Credential,
     addCampaignReport,
     updateCampaignStatus,
-    addEmployee,
-    updateEmployee,
+    // Removed addEmployee and updateEmployee from value
     isLoading,
     error,
   };

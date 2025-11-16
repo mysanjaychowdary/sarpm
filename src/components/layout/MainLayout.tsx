@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { SidebarNav } from "./SidebarNav";
-import { Home, ListChecks, LayoutDashboard, Users, Briefcase } from "lucide-react";
+import { Home, ListChecks, LayoutDashboard, Users } from "lucide-react"; // Removed Briefcase icon
 import { Outlet } from "react-router-dom";
 
 const MainLayout: React.FC = () => {
@@ -35,11 +35,7 @@ const MainLayout: React.FC = () => {
         href: "/settings/panel-users",
         icon: Users,
       },
-      {
-        title: "Employee Management",
-        href: "/settings/employees",
-        icon: Briefcase,
-      }
+      // Removed Employee Management link
     ];
     return items;
   };

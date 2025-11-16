@@ -10,7 +10,7 @@ import CampaignsPage from "./pages/CampaignsPage";
 import PanelManagementPage from "./pages/PanelManagementPage";
 import PanelUserManagementPage from "./pages/PanelUserManagementPage";
 import CampaignDetailsPage from "./pages/CampaignDetailsPage";
-import EmployeeManagementPage from "./pages/EmployeeManagementPage";
+// Removed EmployeeManagementPage import
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 
@@ -31,7 +31,7 @@ const App = () => (
               <Route path="/campaigns/:id" element={<CampaignDetailsPage />} />
               <Route path="/settings/panels" element={<PanelManagementPage />} />
               <Route path="/settings/panel-users" element={<PanelUserManagementPage />} />
-              <Route path="/settings/employees" element={<EmployeeManagementPage />} />
+              {/* Removed EmployeeManagementPage route */}
               {/* Catch-all for 404 */}
               <Route path="*" element={<NotFound />} />
             </Route>
