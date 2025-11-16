@@ -9,20 +9,35 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PlusCircle } from "lucide-react";
 import { isToday } from "date-fns";
+import { useSession } from "@/context/SessionContext"; // Import useSession
 
 const Dashboard = () => {
-  const { campaignReports, isLoading, error } = useAppContext();
+  const { campaignReports, isLoading, error, teamMembers } = useAppContext();
+  const { user } = useSession(); // Get current user
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   console.log("Dashboard: Rendering. isLoading:", isLoading, "error:", error, "campaignReports count:", campaignReports.length);
 
+  // Filter campaigns based on user role
+  const userCampaignReports = useMemo(() => {
+    if (!user) return []; // No user, no reports
+    const currentUserTeamMember = teamMembers.find(member => member.id === user.id);
+
+    if (currentUserTeamMember?.role === "Admin") {
+      return campaignReports; // Admins see all
+    } else {
+      // Team Members only see campaigns they created
+      return campaignReports.filter(report => report.created_by_admin_id === user.id);
+    }
+  }, [campaignReports, user, teamMembers]);
+
   const todayReports = useMemo(() => {
-    return campaignReports.filter(report => isToday(new Date(report.created_date)));
-  }, [campaignReports]);
+    return userCampaignReports.filter(report => isToday(new Date(report.created_date)));
+  }, [userCampaignReports]);
 
   const todayPendingReports = todayReports.filter(report => report.status === "Pending");
   const todayCompletedReports = todayReports.filter(report => report.status === "Completed");
-  const recentlyAddedReports = campaignReports.slice(0, 5);
+  const recentlyAddedReports = userCampaignReports.slice(0, 5); // Slice from filtered reports
 
   if (isLoading) {
     console.log("Dashboard: Showing loading state.");
@@ -97,7 +112,7 @@ const Dashboard = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Campaigns</CardTitle>
-            <span className="text-2xl font-bold">{campaignReports.length}</span>
+            <span className="text-2xl font-bold">{userCampaignReports.length}</span>
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground">
