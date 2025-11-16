@@ -20,6 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useAppContext } from "@/context/AppContext";
 import { showSuccess } from "@/utils/toast";
 import { Eye, EyeOff, Copy } from "lucide-react";
+import { Panel3Credential } from "@/types"; // Import Panel3Credential type
 
 const panel3CredentialFormSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -39,7 +40,7 @@ export function Panel3CredentialManagement() {
   });
 
   function onSubmit(values: z.infer<typeof panel3CredentialFormSchema>) {
-    addPanel3Credential(values);
+    addPanel3Credential(values as Omit<Panel3Credential, "id">);
     showSuccess("Panel 3 credential added successfully!");
     form.reset();
   }

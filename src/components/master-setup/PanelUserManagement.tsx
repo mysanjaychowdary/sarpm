@@ -21,6 +21,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppContext } from "@/context/AppContext";
 import { showSuccess } from "@/utils/toast";
+import { PanelUser } from "@/types"; // Import PanelUser type
 
 const panelUserFormSchema = z.object({
   username: z.string().min(2, { message: "Username must be at least 2 characters." }),
@@ -45,7 +46,7 @@ export function PanelUserManagement() {
   });
 
   function onSubmit(values: z.infer<typeof panelUserFormSchema>) {
-    addPanelUser(values);
+    addPanelUser(values as Omit<PanelUser, "id">);
     showSuccess("Panel user added successfully!");
     form.reset();
   }

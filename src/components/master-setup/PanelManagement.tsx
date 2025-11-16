@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAppContext } from "@/context/AppContext";
 import { showSuccess } from "@/utils/toast";
+import { Panel } from "@/types"; // Import Panel type
 
 const panelFormSchema = z.object({
   name: z.string().min(2, { message: "Panel name must be at least 2 characters." }),
@@ -40,7 +41,7 @@ export function PanelManagement() {
   });
 
   function onSubmit(values: z.infer<typeof panelFormSchema>) {
-    addPanel(values);
+    addPanel(values as Omit<Panel, "id">);
     showSuccess("Panel added successfully!");
     form.reset();
   }
