@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { SidebarNav } from "./SidebarNav";
-import { Home, ListChecks, LayoutDashboard, Users, UserRound } from "lucide-react"; // Added UserRound icon
+import { Home, ListChecks, LayoutDashboard, Users, UserRound } from "lucide-react";
 import { Outlet } from "react-router-dom";
-import { useSession } from "@/context/SessionContext"; // Import useSession
+import { useSession } from "@/context/SessionContext";
+import { useAppContext } from "@/context/AppContext"; // Import useAppContext
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,7 +19,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const MainLayout: React.FC = () => {
   const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);
-  const { user, signOut } = useSession(); // Use session context
+  const { user, signOut } = useSession();
+  const { teamMembers } = useAppContext(); // Get teamMembers from context
+
+  // Determine if the current user is an admin
+  const currentUserTeamMember = useMemo(() => {
+    return teamMembers.find(member => member.id === user?.id);
+  }, [teamMembers, user]);
+  const isAdmin = currentUserTeamMember?.role === "Admin";
 
   const toggleSidebar = () => {
     setIsSidebarMinimized(!isSidebarMinimized);
@@ -30,29 +38,35 @@ const MainLayout: React.FC = () => {
         title: "Dashboard",
         href: "/dashboard",
         icon: Home,
+        adminOnly: false,
       },
       {
         title: "Campaigns",
         href: "/campaigns",
         icon: ListChecks,
+        adminOnly: false,
       },
       {
         title: "Panel Management",
         href: "/settings/panels",
         icon: LayoutDashboard,
+        adminOnly: true,
       },
       {
         title: "Panel User Management",
         href: "/settings/panel-users",
         icon: Users,
+        adminOnly: true,
       },
       {
-        title: "Team Member Management", // New link
+        title: "Team Member Management",
         href: "/settings/team-members",
         icon: UserRound,
+        adminOnly: true,
       },
     ];
-    return items;
+    // Filter items based on admin status
+    return items.filter(item => !item.adminOnly || isAdmin);
   };
 
   const sidebarNavItems = getSidebarNavItems();
@@ -95,7 +109,7 @@ const MainLayout: React.FC = () => {
             </DropdownMenu>
           )}
         </header>
-        <Outlet /> {/* Render nested routes here */}
+        <Outlet />
       </div>
     </div>
   );
