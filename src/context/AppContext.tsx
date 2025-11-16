@@ -1,12 +1,12 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus, CampaignType } from "@/types";
+import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus, CampaignType, Employee } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppContextProvider = ({ children }: { children: ReactNode }) => {
+export const AppContextProvider = ({ children }: { ReactNode }) => {
   const [panels, setPanels] = useState<Panel[]>([
     { id: uuidv4(), name: "Panel 1", description: "Standard campaigns", requiresPanel3Credentials: false },
     { id: uuidv4(), name: "Panel 2", description: "Requires Panel 3 for execution", requiresPanel3Credentials: true },
@@ -25,6 +25,11 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   ]);
 
   const [campaignReports, setCampaignReports] = useState<CampaignReport[]>([]);
+
+  const [employees, setEmployees] = useState<Employee[]>([
+    { id: uuidv4(), name: "Admin User", email: "admin@example.com", role: "Admin", isActive: true, passwordPlaceholder: "adminpass" },
+    { id: uuidv4(), name: "Campaign Manager 1", email: "cm1@example.com", role: "Campaign Manager", isActive: true, passwordPlaceholder: "cmpass1" },
+  ]);
 
   const addPanel = (panel: Omit<Panel, "id">) => {
     setPanels((prev) => [...prev, { ...panel, id: uuidv4() }]);
@@ -54,16 +59,22 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const addEmployee = (employee: Omit<Employee, "id">) => {
+    setEmployees((prev) => [...prev, { ...employee, id: uuidv4() }]);
+  };
+
   const value = {
     panels,
     panelUsers,
     panel3Credentials,
     campaignReports,
+    employees, // Include employees in context value
     addPanel,
     addPanelUser,
     addPanel3Credential,
     addCampaignReport,
     updateCampaignStatus,
+    addEmployee, // Include addEmployee in context value
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

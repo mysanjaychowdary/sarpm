@@ -41,14 +41,25 @@ export interface CampaignReport {
   createdByAdminId: string; // Placeholder for admin who created it
 }
 
+export interface Employee {
+  id: string;
+  name: string;
+  email: string;
+  role: "Admin" | "Campaign Manager"; // Example roles
+  isActive: boolean;
+  passwordPlaceholder: string; // For simulation, would be hashed in real app
+}
+
 export interface AppContextType {
   panels: Panel[];
   panelUsers: PanelUser[];
   panel3Credentials: Panel3Credential[];
   campaignReports: CampaignReport[];
+  employees: Employee[]; // New state for employees
   addPanel: (panel: Omit<Panel, "id">) => void;
   addPanelUser: (user: Omit<PanelUser, "id">) => void;
   addPanel3Credential: (credential: Omit<Panel3Credential, "id">) => void;
   addCampaignReport: (report: Omit<CampaignReport, "id" | "createdDate" | "updatedDate" | "createdByAdminId">) => void;
   updateCampaignStatus: (id: string, status: CampaignStatus) => void;
+  addEmployee: (employee: Omit<Employee, "id">) => void; // New function to add employees
 }

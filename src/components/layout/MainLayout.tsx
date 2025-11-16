@@ -2,7 +2,7 @@
 
 import React from "react";
 import { SidebarNav } from "./SidebarNav";
-import { Home, ListChecks, LayoutDashboard, Users, Key } from "lucide-react";
+import { Home, ListChecks, LayoutDashboard, Users, Key, Briefcase } from "lucide-react";
 
 const sidebarNavItems = [
   {
@@ -26,9 +26,9 @@ const sidebarNavItems = [
     icon: Users,
   },
   {
-    title: "Panel 3 Credentials",
-    href: "/settings/panel3-credentials",
-    icon: Key,
+    title: "Employee Management",
+    href: "/settings/employees",
+    icon: Briefcase,
   },
 ];
 
