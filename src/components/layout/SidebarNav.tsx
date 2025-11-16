@@ -18,7 +18,7 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
   return (
     <nav
       className={cn(
-        "flex flex-col space-y-1 p-4 border-r bg-sidebar h-full shadow-lg rounded-r-lg", // Added shadow-lg and rounded-r-lg
+        "flex flex-col space-y-1 p-4 border-r bg-sidebar h-full shadow-lg rounded-r-lg",
         className
       )}
       {...props}
@@ -28,13 +28,13 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
           key={item.href}
           to={item.href}
           className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-sidebar-accent hover:text-sidebar-primary",
+            "flex items-center gap-3 rounded-lg px-4 py-3 text-base transition-all hover:bg-sidebar-accent hover:text-sidebar-primary", // Increased px, py, and text-base
             location.pathname === item.href
-              ? "bg-primary text-primary-foreground" // Active link uses primary-orange
+              ? "bg-primary text-primary-foreground"
               : "text-sidebar-foreground"
           )}
         >
-          <item.icon className="h-4 w-4" />
+          <item.icon className="h-5 w-5" /> {/* Slightly larger icons */}
           {item.title}
         </Link>
       ))}
