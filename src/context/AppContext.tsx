@@ -215,6 +215,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     deleteTeamMember, // New: deleteTeamMember function
     isLoading: isLoading || isSessionLoading, // Combine loading states
     error,
+    fetchData, // Expose fetchData
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

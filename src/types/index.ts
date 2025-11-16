@@ -66,4 +66,5 @@ export interface AppContextType {
   addTeamMember: (member: Omit<TeamMember, "id" | "created_at">) => Promise<void>; // New: Add team member
   updateTeamMember: (member: TeamMember) => Promise<void>; // New: Update team member
   deleteTeamMember: (id: string) => Promise<void>; // New: Delete team member
+  fetchData: () => Promise<void>; // New: Expose fetchData
 }

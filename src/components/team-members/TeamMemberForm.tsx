@@ -37,7 +37,7 @@ interface TeamMemberFormProps {
 }
 
 export function TeamMemberForm({ onMemberAdded }: TeamMemberFormProps) {
-  const { addTeamMember } = useAppContext();
+  const { fetchData } = useAppContext(); // Get fetchData from context
 
   const form = useForm<z.infer<typeof teamMemberFormSchema>>({
     resolver: zodResolver(teamMemberFormSchema),
@@ -71,14 +71,13 @@ export function TeamMemberForm({ onMemberAdded }: TeamMemberFormProps) {
 
       if (authData.user) {
         // The handle_new_team_member_user trigger will create the team_members entry.
-        // We just need to ensure the AppContext state is updated.
-        // For simplicity, we'll refetch all team members after a new user is created.
-        // In a more complex app, you might listen to real-time changes or return the new member.
-        showSuccess("Team member user created successfully! An email has been sent for confirmation.");
+        // Now, refresh the AppContext data to show the new member.
+        await fetchData(); 
+        showSuccess("Team member user created successfully!");
         form.reset();
         onMemberAdded?.();
       } else {
-        showError("User creation initiated, but no user data returned. Check email for confirmation.");
+        showError("User creation initiated, but no user data returned. Please check the Supabase logs.");
       }
     } catch (error) {
       // Error handled by AppContext or above, just prevent further action
@@ -124,7 +123,7 @@ export function TeamMemberForm({ onMemberAdded }: TeamMemberFormProps) {
                 <Input type="password" placeholder="Enter initial password" {...field} />
               </FormControl>
               <FormDescription>
-                (User will be prompted to confirm email and set a new password)
+                (User will be able to log in immediately since email confirmation is off)
               </FormDescription>
               <FormMessage />
             </FormItem>
