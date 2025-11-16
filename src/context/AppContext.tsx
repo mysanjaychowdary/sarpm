@@ -1,18 +1,20 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
-import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus } from "@/types";
+import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus, TeamMember } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
+import { useSession } from "./SessionContext"; // Import useSession
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppContextProvider = ({ children }: { children: ReactNode }) => {
+  const { user, isLoading: isSessionLoading } = useSession(); // Get user from session
   const [panels, setPanels] = useState<Panel[]>([]);
   const [panelUsers, setPanelUsers] = useState<PanelUser[]>([]);
   const [panel3Credentials, setPanel3Credentials] = useState<Panel3Credential[]>([]);
   const [campaignReports, setCampaignReports] = useState<CampaignReport[]>([]);
-  // Removed employees state
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]); // New: Team members state
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,7 +48,12 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
       setCampaignReports(campaignReportsData || []);
       console.log("AppContext: Campaign reports fetched:", campaignReportsData?.length);
 
-      // Removed fetching employees
+      console.log("AppContext: Fetching team_members..."); // New: Fetch team members
+      const { data: teamMembersData, error: teamMembersError } = await supabase.from('team_members').select('*');
+      if (teamMembersError) throw teamMembersError;
+      setTeamMembers(teamMembersData || []);
+      console.log("AppContext: Team members fetched:", teamMembersData?.length);
+
     } catch (err: any) {
       console.error("AppContext: Error fetching data:", err.message);
       showError("Failed to load data: " + err.message);
@@ -58,8 +65,10 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!isSessionLoading) { // Only fetch data once session loading is complete
+      fetchData();
+    }
+  }, [fetchData, isSessionLoading]);
 
   const addPanel = async (panel: Omit<Panel, "id">) => {
     console.log("AppContext: Adding panel:", panel.name);
@@ -123,8 +132,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const addCampaignReport = async (report: Omit<CampaignReport, "id" | "created_date" | "updated_date" | "created_by_admin_id">) => {
     console.log("AppContext: Adding campaign report:", report.campaign_name);
     const now = new Date().toISOString();
-    // Since there's no logged-in user, use a placeholder for created_by_admin_id
-    const newReport = { ...report, created_date: now, updated_date: now, created_by_admin_id: "system-user" };
+    const newReport = { ...report, created_date: now, updated_date: now, created_by_admin_id: user?.id || "anonymous" }; // Use auth.uid()
     const { data, error } = await supabase.from('campaign_reports').insert(newReport).select();
     if (error) {
       showError("Failed to create campaign report: " + error.message);
@@ -149,14 +157,52 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     showSuccess("Campaign status updated successfully!");
   };
 
-  // Removed addEmployee and updateEmployee functions
+  // New: Team Member CRUD operations
+  const addTeamMember = async (member: Omit<TeamMember, "id" | "created_at">) => {
+    console.log("AppContext: Adding team member:", member.name);
+    // For adding a team member, we'd typically create an auth user first,
+    // and the trigger would create the team_members entry.
+    // For now, we'll simulate by directly inserting, assuming the auth.user already exists or will be created separately.
+    // In a real scenario, you'd use supabase.auth.admin.createUser() on the server-side.
+    const { data, error } = await supabase.from('team_members').insert(member).select();
+    if (error) {
+      showError("Failed to add team member: " + error.message);
+      throw error;
+    }
+    setTeamMembers((prev) => [...prev, data[0]]);
+    showSuccess("Team member added successfully!");
+  };
+
+  const updateTeamMember = async (updatedMember: TeamMember) => {
+    console.log("AppContext: Updating team member:", updatedMember.name);
+    const { data, error } = await supabase.from('team_members').update(updatedMember).eq('id', updatedMember.id).select();
+    if (error) {
+      showError("Failed to update team member: " + error.message);
+      throw error;
+    }
+    setTeamMembers((prev) =>
+      prev.map((member) => (member.id === updatedMember.id ? data[0] : member))
+    );
+    showSuccess("Team member updated successfully!");
+  };
+
+  const deleteTeamMember = async (id: string) => {
+    console.log("AppContext: Deleting team member with ID:", id);
+    const { error } = await supabase.from('team_members').delete().eq('id', id);
+    if (error) {
+      showError("Failed to delete team member: " + error.message);
+      throw error;
+    }
+    setTeamMembers((prev) => prev.filter((member) => member.id !== id));
+    showSuccess("Team member deleted successfully!");
+  };
 
   const value = {
     panels,
     panelUsers,
     panel3Credentials,
     campaignReports,
-    // Removed employees from value
+    teamMembers, // New: teamMembers in context value
     addPanel,
     updatePanel,
     deletePanel,
@@ -164,8 +210,10 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     addPanel3Credential,
     addCampaignReport,
     updateCampaignStatus,
-    // Removed addEmployee and updateEmployee from value
-    isLoading,
+    addTeamMember, // New: addTeamMember function
+    updateTeamMember, // New: updateTeamMember function
+    deleteTeamMember, // New: deleteTeamMember function
+    isLoading: isLoading || isSessionLoading, // Combine loading states
     error,
   };
 

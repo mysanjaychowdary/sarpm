@@ -15,7 +15,6 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
     href: string;
     title: string;
     icon: React.ElementType;
-    // roles property removed as there is no role-based access
   }[];
   isMinimized: boolean;
   onToggleMinimize: () => void;

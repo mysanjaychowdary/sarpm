@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { showSuccess } from "@/utils/toast";
 import { Link } from "react-router-dom";
 import { CampaignReport } from "@/types";
+import { useSession } from "@/context/SessionContext"; // Import useSession
 
 interface CampaignTableProps {
   reports?: CampaignReport[]; // Optional prop to filter reports
@@ -16,6 +17,7 @@ interface CampaignTableProps {
 
 export function CampaignTable({ reports }: CampaignTableProps) {
   const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus } = useAppContext();
+  const { session } = useSession(); // Get session info
 
   const reportsToDisplay = reports || campaignReports; // Use filtered reports if provided, otherwise all
 
@@ -81,14 +83,18 @@ export function CampaignTable({ reports }: CampaignTableProps) {
                   <Link to={`/campaigns/${report.id}`}>
                     <Button variant="outline" size="sm">View</Button>
                   </Link>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handleStatusUpdate(report.id, report.status)}
-                  >
-                    {report.status === "Pending" ? "Mark Completed" : "Mark Pending"}
-                  </Button>
-                  <Button variant="destructive" size="sm">Delete</Button>
+                  {session && ( // Only show update status button if authenticated
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleStatusUpdate(report.id, report.status)}
+                    >
+                      {report.status === "Pending" ? "Mark Completed" : "Mark Pending"}
+                    </Button>
+                  )}
+                  {session && ( // Only show delete button if authenticated
+                    <Button variant="destructive" size="sm">Delete</Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))

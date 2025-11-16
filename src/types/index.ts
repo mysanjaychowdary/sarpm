@@ -39,14 +39,21 @@ export interface CampaignReport {
   created_by_admin_id: string; // No longer optional, will be a placeholder string
 }
 
-// Removed Employee interface
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string; // e.g., "Team Member", "Admin"
+  is_active: boolean;
+  created_at: string;
+}
 
 export interface AppContextType {
   panels: Panel[];
   panelUsers: PanelUser[];
   panel3Credentials: Panel3Credential[];
   campaignReports: CampaignReport[];
-  // Removed employees from AppContextType
+  teamMembers: TeamMember[]; // New: Team members state
   isLoading: boolean; // Added for loading state
   error: string | null; // Added for error state
   addPanel: (panel: Omit<Panel, "id">) => Promise<void>;
@@ -56,5 +63,7 @@ export interface AppContextType {
   addPanel3Credential: (credential: Omit<Panel3Credential, "id">) => Promise<void>;
   addCampaignReport: (report: Omit<CampaignReport, "id" | "created_date" | "updated_date" | "created_by_admin_id">) => Promise<void>; // Updated field names
   updateCampaignStatus: (id: string, status: CampaignStatus) => Promise<void>;
-  // Removed addEmployee and updateEmployee from AppContextType
+  addTeamMember: (member: Omit<TeamMember, "id" | "created_at">) => Promise<void>; // New: Add team member
+  updateTeamMember: (member: TeamMember) => Promise<void>; // New: Update team member
+  deleteTeamMember: (id: string) => Promise<void>; // New: Delete team member
 }
