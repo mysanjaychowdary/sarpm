@@ -36,16 +36,7 @@ export interface CampaignReport {
   campaign_date: string; // Changed to snake_case
   created_date: string; // Changed to snake_case
   updated_date: string; // Changed to snake_case
-  created_by_admin_id: string; // Changed to snake_case
-}
-
-export interface Employee {
-  id: string;
-  name: string;
-  email: string;
-  role: "Admin" | "Campaign Manager";
-  is_active: boolean; // Changed to snake_case
-  password_placeholder: string;
+  created_by_admin_id: string; // This field will now be a placeholder like "anonymous"
 }
 
 export interface AppContextType {
@@ -53,7 +44,6 @@ export interface AppContextType {
   panelUsers: PanelUser[];
   panel3Credentials: Panel3Credential[];
   campaignReports: CampaignReport[];
-  employees: Employee[];
   isLoading: boolean; // Added for loading state
   error: string | null; // Added for error state
   addPanel: (panel: Omit<Panel, "id">) => Promise<void>;
@@ -63,6 +53,4 @@ export interface AppContextType {
   addPanel3Credential: (credential: Omit<Panel3Credential, "id">) => Promise<void>;
   addCampaignReport: (report: Omit<CampaignReport, "id" | "created_date" | "updated_date" | "created_by_admin_id">) => Promise<void>; // Updated field names
   updateCampaignStatus: (id: string, status: CampaignStatus) => Promise<void>;
-  addEmployee: (employee: Omit<Employee, "id">) => Promise<void>;
-  updateEmployee: (employee: Employee) => Promise<void>;
 }

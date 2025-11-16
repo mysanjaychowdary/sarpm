@@ -1,39 +1,22 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
-import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus, Employee } from "@/types";
+import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
-import { useSession } from "./SessionContext"; // Import useSession
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppContextProvider = ({ children }: { children: ReactNode }) => {
-  const { session, user, isLoadingSession } = useSession(); // Use session from SessionContext
   const [panels, setPanels] = useState<Panel[]>([]);
   const [panelUsers, setPanelUsers] = useState<PanelUser[]>([]);
   const [panel3Credentials, setPanel3Credentials] = useState<Panel3Credential[]>([]);
   const [campaignReports, setCampaignReports] = useState<CampaignReport[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     console.log("AppContext: fetchData called.");
-
-    if (isLoadingSession) {
-      console.log("AppContext: Session still loading, deferring data fetch.");
-      return;
-    }
-
-    // Only fetch data if a session exists, or if we decide some data is public
-    // For now, we'll fetch data if a session exists, assuming data is protected.
-    // If you want public data, remove the `if (!session)` check.
-    if (!session) {
-      console.log("AppContext: No active session, not fetching data.");
-      setIsLoading(false);
-      return;
-    }
 
     setIsLoading(true);
     setError(null);
@@ -62,12 +45,6 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
       setCampaignReports(campaignReportsData || []);
       console.log("AppContext: Campaign reports fetched:", campaignReportsData?.length);
 
-      console.log("AppContext: Fetching employees...");
-      const { data: employeesData, error: employeesError } = await supabase.from('employees').select('*');
-      if (employeesError) throw employeesError;
-      setEmployees(employeesData || []);
-      console.log("AppContext: Employees fetched:", employeesData?.length);
-
     } catch (err: any) {
       console.error("AppContext: Error fetching data:", err.message);
       showError("Failed to load data: " + err.message);
@@ -76,17 +53,13 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(false);
       console.log("AppContext: Data fetching complete, isLoading set to false.");
     }
-  }, [session, isLoadingSession]); // Re-run fetchData when session or isLoadingSession changes
+  }, []);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
   const addPanel = async (panel: Omit<Panel, "id">) => {
-    if (!user) {
-      showError("You must be logged in to add a panel.");
-      return;
-    }
     console.log("AppContext: Adding panel:", panel.name);
     const { data, error } = await supabase.from('panels').insert(panel).select();
     if (error) {
@@ -98,10 +71,6 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updatePanel = async (updatedPanel: Panel) => {
-    if (!user) {
-      showError("You must be logged in to update a panel.");
-      return;
-    }
     console.log("AppContext: Updating panel:", updatedPanel.name);
     const { data, error } = await supabase.from('panels').update(updatedPanel).eq('id', updatedPanel.id).select();
     if (error) {
@@ -115,10 +84,6 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deletePanel = async (id: string) => {
-    if (!user) {
-      showError("You must be logged in to delete a panel.");
-      return;
-    }
     console.log("AppContext: Deleting panel with ID:", id);
     const { error } = await supabase.from('panels').delete().eq('id', id);
     if (error) {
@@ -132,10 +97,6 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addPanelUser = async (user: Omit<PanelUser, "id">) => {
-    if (!user) {
-      showError("You must be logged in to add a panel user.");
-      return;
-    }
     console.log("AppContext: Adding panel user:", user.username);
     const { data, error } = await supabase.from('panel_users').insert(user).select();
     if (error) {
@@ -147,10 +108,6 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addPanel3Credential = async (credential: Omit<Panel3Credential, "id">) => {
-    if (!user) {
-      showError("You must be logged in to add Panel 3 credentials.");
-      return;
-    }
     console.log("AppContext: Adding Panel 3 credential for email:", credential.email);
     const { data, error } = await supabase.from('panel3_credentials').insert(credential).select();
     if (error) {
@@ -162,13 +119,9 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addCampaignReport = async (report: Omit<CampaignReport, "id" | "created_date" | "updated_date" | "created_by_admin_id">) => {
-    if (!user) {
-      showError("You must be logged in to create a campaign report.");
-      return;
-    }
     console.log("AppContext: Adding campaign report:", report.campaign_name);
     const now = new Date().toISOString();
-    const newReport = { ...report, created_date: now, updated_date: now, created_by_admin_id: user.id };
+    const newReport = { ...report, created_date: now, updated_date: now, created_by_admin_id: "anonymous" }; // Assign a default ID
     const { data, error } = await supabase.from('campaign_reports').insert(newReport).select();
     if (error) {
       showError("Failed to create campaign report: " + error.message);
@@ -179,10 +132,6 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateCampaignStatus = async (id: string, status: CampaignStatus) => {
-    if (!user) {
-      showError("You must be logged in to update campaign status.");
-      return;
-    }
     console.log(`AppContext: Updating campaign ${id} status to ${status}`);
     const { data, error } = await supabase.from('campaign_reports').update({ status, updated_date: new Date().toISOString() }).eq('id', id).select();
     if (error) {
@@ -197,46 +146,11 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     showSuccess("Campaign status updated successfully!");
   };
 
-  const addEmployee = async (employee: Omit<Employee, "id">) => {
-    if (!user) {
-      showError("You must be logged in to add an employee.");
-      return;
-    }
-    console.log("AppContext: Adding employee:", employee.name);
-    const { data, error } = await supabase.from('employees').insert(employee).select();
-    if (error) {
-      showError("Failed to add employee: " + error.message);
-      throw error;
-    }
-    setEmployees((prev) => [...prev, data[0]]);
-    showSuccess("Employee added successfully!");
-  };
-
-  const updateEmployee = async (updatedEmployee: Employee) => {
-    if (!user) {
-      showError("You must be logged in to update an employee.");
-      return;
-    }
-    console.log("AppContext: Updating employee:", updatedEmployee.name);
-    const { data, error } = await supabase.from('employees').update(updatedEmployee).eq('id', updatedEmployee.id).select();
-    if (error) {
-      showError("Failed to update employee: " + error.message);
-      throw error;
-    }
-    setEmployees((prev) =>
-      prev.map((employee) =>
-        employee.id === updatedEmployee.id ? data[0] : employee
-      )
-    );
-    showSuccess("Employee updated successfully!");
-  };
-
   const value = {
     panels,
     panelUsers,
     panel3Credentials,
     campaignReports,
-    employees,
     addPanel,
     updatePanel,
     deletePanel,
@@ -244,9 +158,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     addPanel3Credential,
     addCampaignReport,
     updateCampaignStatus,
-    addEmployee,
-    updateEmployee,
-    isLoading: isLoading || isLoadingSession, // Combine loading states
+    isLoading,
     error,
   };
 
