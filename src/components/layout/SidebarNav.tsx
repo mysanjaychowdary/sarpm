@@ -2,7 +2,8 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, Settings } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react"; // Import Chevron icons
+import { Button } from "@/components/ui/button"; // Assuming Button component is available
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
@@ -10,21 +11,33 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
     title: string;
     icon: React.ElementType;
   }[];
+  isMinimized: boolean;
+  onToggleMinimize: () => void;
 }
 
-export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
+export function SidebarNav({ className, items, isMinimized, onToggleMinimize, ...props }: SidebarNavProps) {
   const location = useLocation();
 
   return (
     <nav
       className={cn(
-        "flex flex-col space-y-4 p-4 border-r bg-gray-50 dark:bg-gray-900 h-screen sticky top-0", // Changed background, added sticky top-0 and h-screen
+        "flex flex-col space-y-4 p-4 border-r bg-gray-50 dark:bg-gray-900 h-screen sticky top-0 transition-all duration-300",
         className
       )}
       {...props}
     >
-      <div className="mb-6 px-3">
-        <h2 className="text-2xl font-bold text-primary dark:text-primary">SA Report Manager</h2> {/* Changed text */}
+      <div className="mb-6 px-3 flex items-center justify-between">
+        {!isMinimized && (
+          <h2 className="text-2xl font-bold text-primary dark:text-primary whitespace-nowrap">SA Report Manager</h2>
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggleMinimize}
+          className={cn("ml-auto", isMinimized && "mx-auto")} // Center button when minimized
+        >
+          {isMinimized ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+        </Button>
       </div>
       <div className="flex flex-col space-y-1">
         {items.map((item) => (
@@ -33,11 +46,16 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
             to={item.href}
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 transition-all hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 dark:hover:text-primary",
-              location.pathname === item.href && "bg-primary text-primary-foreground hover:bg-primary dark:hover:bg-primary" // Active state
+              location.pathname === item.href && "bg-primary text-primary-foreground hover:bg-primary dark:hover:bg-primary",
+              isMinimized && "justify-center px-2" // Center icon when minimized
             )}
           >
-            <item.icon className="h-5 w-5" /> {/* Slightly larger icons */}
-            <span className="text-base font-medium">{item.title}</span> {/* Clearer text */}
+            <item.icon className="h-5 w-5 flex-shrink-0" />
+            {!isMinimized && (
+              <span className="text-base font-medium whitespace-nowrap overflow-hidden">
+                {item.title}
+              </span>
+            )}
           </Link>
         ))}
       </div>

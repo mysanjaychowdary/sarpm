@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { SidebarNav } from "./SidebarNav";
 import { Home, ListChecks, LayoutDashboard, Users, Key, Briefcase } from "lucide-react";
 
@@ -37,10 +37,21 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsSidebarMinimized(!isSidebarMinimized);
+  };
+
   return (
     <div className="flex min-h-screen bg-background">
-      <SidebarNav items={sidebarNavItems} className="w-64 flex-shrink-0" /> {/* Added flex-shrink-0 */}
-      <div className="flex-1 p-6 overflow-auto">
+      <SidebarNav
+        items={sidebarNavItems}
+        isMinimized={isSidebarMinimized}
+        onToggleMinimize={toggleSidebar}
+        className={isSidebarMinimized ? "w-16" : "w-64"} // Adjust width based on state
+      />
+      <div className={`flex-1 p-6 overflow-auto transition-all duration-300 ${isSidebarMinimized ? "ml-0" : "ml-0"}`}>
         {children}
       </div>
     </div>
