@@ -19,13 +19,11 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useSession } from "@/context/SessionContext"; // Import useSession
 
 const CampaignDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus, isLoading, error } = useAppContext();
-  const { isAdmin, isCampaignManager } = useSession(); // Get user roles
   const [showPanel3Password, setShowPanel3Password] = useState(false);
   const [isStatusUpdateDialogOpen, setIsStatusUpdateDialogOpen] = useState(false);
   const [statusUpdateRemarks, setStatusUpdateRemarks] = useState("");
@@ -208,66 +206,62 @@ const CampaignDetailsPage = () => {
         </Card>
       )}
 
-      {(isAdmin || isCampaignManager) && ( // Only show actions if Admin or Campaign Manager
-        <Card>
-          <CardHeader>
-            <CardTitle>Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="flex space-x-2">
-            <Dialog open={isStatusUpdateDialogOpen} onOpenChange={setIsStatusUpdateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="secondary">Update Status</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Update Campaign Status</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="current-status" className="text-right">
-                      Current Status
-                    </Label>
-                    <Badge
-                      id="current-status"
-                      className="col-span-3 w-fit"
-                      variant={report.status === "Completed" ? "default" : "secondary"}
-                    >
-                      {report.status}
-                    </Badge>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="remarks" className="text-right">
-                      Remarks (Optional)
-                    </Label>
-                    <Textarea
-                      id="remarks"
-                      value={statusUpdateRemarks}
-                      onChange={(e) => setStatusUpdateRemarks(e.target.value)}
-                      className="col-span-3"
-                      placeholder="Add any notes about the status update..."
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsStatusUpdateDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={() =>
-                      handleStatusUpdate(report.status === "Pending" ? "Completed" : "Pending")
-                    }
+      <Card>
+        <CardHeader>
+          <CardTitle>Actions</CardTitle>
+        </CardHeader>
+        <CardContent className="flex space-x-2">
+          <Dialog open={isStatusUpdateDialogOpen} onOpenChange={setIsStatusUpdateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="secondary">Update Status</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Update Campaign Status</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="current-status" className="text-right">
+                    Current Status
+                  </Label>
+                  <Badge
+                    id="current-status"
+                    className="col-span-3 w-fit"
+                    variant={report.status === "Completed" ? "default" : "secondary"}
                   >
-                    Change to {report.status === "Pending" ? "Completed" : "Pending"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            {isAdmin && ( // Only Admin can delete
-              <Button variant="destructive">Delete Campaign</Button>
-            )}
-          </CardContent>
-        </Card>
-      )}
+                    {report.status}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="remarks" className="text-right">
+                    Remarks (Optional)
+                  </Label>
+                  <Textarea
+                    id="remarks"
+                    value={statusUpdateRemarks}
+                    onChange={(e) => setStatusUpdateRemarks(e.target.value)}
+                    className="col-span-3"
+                    placeholder="Add any notes about the status update..."
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsStatusUpdateDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() =>
+                    handleStatusUpdate(report.status === "Pending" ? "Completed" : "Pending")
+                  }
+                >
+                  Change to {report.status === "Pending" ? "Completed" : "Pending"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Button variant="destructive">Delete Campaign</Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };

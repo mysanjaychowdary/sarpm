@@ -8,13 +8,14 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip"; // Import Tooltip components
+} from "@/components/ui/tooltip";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
     href: string;
     title: string;
     icon: React.ElementType;
+    // roles property removed as there is no role-based access
   }[];
   isMinimized: boolean;
   onToggleMinimize: () => void;

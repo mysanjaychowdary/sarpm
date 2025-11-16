@@ -36,7 +36,7 @@ export interface CampaignReport {
   campaign_date: string; // Changed to snake_case
   created_date: string; // Changed to snake_case
   updated_date: string; // Changed to snake_case
-  created_by_admin_id: string; // Changed to snake_case
+  created_by_admin_id: string; // No longer optional, will be a placeholder string
 }
 
 export interface Employee {
