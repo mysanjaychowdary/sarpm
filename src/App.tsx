@@ -17,40 +17,43 @@ import TeamMemberManagementPage from "./pages/TeamMemberManagementPage";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import { ThemeProvider } from "./components/layout/ThemeProvider"; // Import ThemeProvider
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <SessionContextProvider>
-          <AppContextProvider>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route element={<ProtectedRoute />}>
-                <Route path="/" element={<MainLayout />}>
-                  <Route index element={<Index />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/campaigns" element={<CampaignsPage />} />
-                  <Route path="/campaigns/:id" element={<CampaignDetailsPage />} />
-                  {/* Admin-only routes */}
-                  <Route element={<AdminRoute />}>
-                    <Route path="/settings/panels" element={<PanelManagementPage />} />
-                    <Route path="/settings/panel-users" element={<PanelUserManagementPage />} />
-                    <Route path="/settings/team-members" element={<TeamMemberManagementPage />} />
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme"> {/* Add ThemeProvider here */}
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <SessionContextProvider>
+            <AppContextProvider>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/" element={<MainLayout />}>
+                    <Route index element={<Index />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/campaigns" element={<CampaignsPage />} />
+                    <Route path="/campaigns/:id" element={<CampaignDetailsPage />} />
+                    {/* Admin-only routes */}
+                    <Route element={<AdminRoute />}>
+                      <Route path="/settings/panels" element={<PanelManagementPage />} />
+                      <Route path="/settings/panel-users" element={<PanelUserManagementPage />} />
+                      <Route path="/settings/team-members" element={<TeamMemberManagementPage />} />
+                    </Route>
+                    {/* Catch-all for 404 */}
+                    <Route path="*" element={<NotFound />} />
                   </Route>
-                  {/* Catch-all for 404 */}
-                  <Route path="*" element={<NotFound />} />
                 </Route>
-              </Route>
-            </Routes>
-          </AppContextProvider>
-        </SessionContextProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+              </Routes>
+            </AppContextProvider>
+          </SessionContextProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider> {/* Close ThemeProvider */}
   </QueryClientProvider>
 );
 
