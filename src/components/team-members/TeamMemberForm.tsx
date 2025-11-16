@@ -21,6 +21,7 @@ import { useAppContext } from "@/context/AppContext";
 import { showSuccess, showError } from "@/utils/toast";
 import { TeamMember } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@/context/SessionContext"; // Import useSession to get the current session token
 
 const teamMemberFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -37,7 +38,8 @@ interface TeamMemberFormProps {
 }
 
 export function TeamMemberForm({ onMemberAdded }: TeamMemberFormProps) {
-  const { fetchData } = useAppContext(); // Get fetchData from context
+  const { fetchData } = useAppContext();
+  const { session } = useSession(); // Get the current session
 
   const form = useForm<z.infer<typeof teamMemberFormSchema>>({
     resolver: zodResolver(teamMemberFormSchema),
@@ -51,36 +53,43 @@ export function TeamMemberForm({ onMemberAdded }: TeamMemberFormProps) {
   });
 
   async function onSubmit(values: z.infer<typeof teamMemberFormSchema>) {
+    if (!session) {
+      showError("You must be logged in to add team members.");
+      return;
+    }
+
     try {
-      // First, create the user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: values.email,
-        password: values.password,
-        options: {
-          data: {
-            name: values.name,
-            role: values.role,
-          },
+      // Invoke the Edge Function to create the team member
+      const { data, error } = await supabase.functions.invoke('create-team-member', {
+        body: JSON.stringify({
+          name: values.name,
+          email: values.email,
+          password: values.password,
+          role: values.role,
+          is_active: values.is_active,
+        }),
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`, // Pass the current user's token for authorization
+          'Content-Type': 'application/json',
         },
       });
 
-      if (authError) {
-        showError("Failed to create user: " + authError.message);
-        throw authError;
+      if (error) {
+        showError("Failed to create team member: " + error.message);
+        throw error;
       }
 
-      if (authData.user) {
-        // The handle_new_team_member_user trigger will create the team_members entry.
-        // Now, refresh the AppContext data to show the new member.
-        await fetchData(); 
-        showSuccess("Team member user created successfully!");
+      if (data && data.message) {
+        showSuccess(data.message);
         form.reset();
+        await fetchData(); // Refresh the AppContext data to show the new member
         onMemberAdded?.();
       } else {
-        showError("User creation initiated, but no user data returned. Please check the Supabase logs.");
+        showError("An unexpected error occurred during team member creation.");
       }
-    } catch (error) {
-      // Error handled by AppContext or above, just prevent further action
+    } catch (error: any) {
+      console.error("Error creating team member:", error);
+      showError(error.message || "Failed to create team member.");
     }
   }
 
