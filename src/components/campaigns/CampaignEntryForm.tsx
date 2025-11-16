@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form"; // Corrected import
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import { RefreshCcw, CalendarIcon } from "lucide-react";
 import { CampaignType } from "@/types";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useSession } from "@/context/SessionContext"; // New import
 
 const campaignFormSchema = z.object({
   campaign_id: z.string().min(1, { message: "Campaign ID is required." }), // Auto-generate a short ID
@@ -46,6 +47,7 @@ interface CampaignEntryFormProps {
 
 export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
   const { panels, panelUsers, panel3Credentials, addCampaignReport } = useAppContext();
+  const { user } = useSession(); // Get user from session
   const [selectedPanelRequiresPanel3, setSelectedPanelRequiresPanel3] = useState(false);
 
   const form = useForm<z.infer<typeof campaignFormSchema>>({
@@ -81,6 +83,10 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
   };
 
   async function onSubmit(values: z.infer<typeof campaignFormSchema>) {
+    if (!user) {
+      showError("You must be logged in to create a campaign report.");
+      return;
+    }
     if (selectedPanelRequiresPanel3 && (!values.panel3_credential_id || !values.panel3_password_placeholder)) {
       showError("Panel 3 user and password are required for Panel 2 campaigns.");
       return;

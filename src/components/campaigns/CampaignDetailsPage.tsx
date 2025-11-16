@@ -19,11 +19,13 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { useSession } from "@/context/SessionContext"; // New import
 
 const CampaignDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus, isLoading, error } = useAppContext();
+  const { isAdmin, isEmployee } = useSession(); // Get roles from session
   const [showPanel3Password, setShowPanel3Password] = useState(false);
   const [isStatusUpdateDialogOpen, setIsStatusUpdateDialogOpen] = useState(false);
   const [statusUpdateRemarks, setStatusUpdateRemarks] = useState("");
@@ -154,7 +156,7 @@ const CampaignDetailsPage = () => {
             <p>{format(new Date(report.updated_date), "PPP p")}</p>
           </div>
           <div>
-            <p className="text-sm font-medium text-muted-foreground">Created By</p>
+            <p className="text-sm font-medium text-muted-foreground">Created By (Admin ID)</p>
             <p>{report.created_by_admin_id}</p>
           </div>
         </CardContent>
@@ -211,55 +213,59 @@ const CampaignDetailsPage = () => {
           <CardTitle>Actions</CardTitle>
         </CardHeader>
         <CardContent className="flex space-x-2">
-          <Dialog open={isStatusUpdateDialogOpen} onOpenChange={setIsStatusUpdateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="secondary">Update Status</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Update Campaign Status</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="current-status" className="text-right">
-                    Current Status
-                  </Label>
-                  <Badge
-                    id="current-status"
-                    className="col-span-3 w-fit"
-                    variant={report.status === "Completed" ? "default" : "secondary"}
+          {(isAdmin || isEmployee) && ( // Only show update status for Admin or Employee
+            <Dialog open={isStatusUpdateDialogOpen} onOpenChange={setIsStatusUpdateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="secondary">Update Status</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Update Campaign Status</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="current-status" className="text-right">
+                      Current Status
+                    </Label>
+                    <Badge
+                      id="current-status"
+                      className="col-span-3 w-fit"
+                      variant={report.status === "Completed" ? "default" : "secondary"}
+                    >
+                      {report.status}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="remarks" className="text-right">
+                      Remarks (Optional)
+                    </Label>
+                    <Textarea
+                      id="remarks"
+                      value={statusUpdateRemarks}
+                      onChange={(e) => setStatusUpdateRemarks(e.target.value)}
+                      className="col-span-3"
+                      placeholder="Add any notes about the status update..."
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsStatusUpdateDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() =>
+                      handleStatusUpdate(report.status === "Pending" ? "Completed" : "Pending")
+                    }
                   >
-                    {report.status}
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="remarks" className="text-right">
-                    Remarks (Optional)
-                  </Label>
-                  <Textarea
-                    id="remarks"
-                    value={statusUpdateRemarks}
-                    onChange={(e) => setStatusUpdateRemarks(e.target.value)}
-                    className="col-span-3"
-                    placeholder="Add any notes about the status update..."
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsStatusUpdateDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() =>
-                    handleStatusUpdate(report.status === "Pending" ? "Completed" : "Pending")
-                  }
-                >
-                  Change to {report.status === "Pending" ? "Completed" : "Pending"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          <Button variant="destructive">Delete Campaign</Button>
+                    Change to {report.status === "Pending" ? "Completed" : "Pending"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
+          {isAdmin && ( // Only show delete for Admin
+            <Button variant="destructive">Delete Campaign</Button>
+          )}
         </CardContent>
       </Card>
     </div>

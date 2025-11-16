@@ -12,9 +12,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppContext } from "@/context/AppContext";
 import { CampaignType } from "@/types";
+import { useSession } from "@/context/SessionContext"; // New import
 
 const CampaignsPage = () => {
   const { campaignReports, panels, isLoading, error } = useAppContext();
+  const { isAdmin, isEmployee } = useSession(); // Get roles from session
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
   const [searchTerm, setSearchTerm] = useState("");
@@ -63,19 +65,21 @@ const CampaignsPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Campaigns</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add New Campaign
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create New Campaign Report</DialogTitle>
-            </DialogHeader>
-            <CampaignEntryForm onCampaignAdded={() => setIsDialogOpen(false)} />
-          </DialogContent>
-        </Dialog>
+        {(isAdmin || isEmployee) && ( // Only show Add New Campaign button for Admin or Employee
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" /> Add New Campaign
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Create New Campaign Report</DialogTitle>
+              </DialogHeader>
+              <CampaignEntryForm onCampaignAdded={() => setIsDialogOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <Card>

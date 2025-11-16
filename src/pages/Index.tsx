@@ -2,13 +2,27 @@
 
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSession } from "@/context/SessionContext"; // New import
 
 const Index = () => {
   const navigate = useNavigate();
+  const { session, isLoadingSession } = useSession();
 
   useEffect(() => {
-    navigate("/dashboard", { replace: true });
-  }, [navigate]);
+    if (!isLoadingSession && session) {
+      navigate("/dashboard", { replace: true });
+    } else if (!isLoadingSession && !session) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate, session, isLoadingSession]);
+
+  if (isLoadingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <h1 className="text-4xl font-bold mb-4">Loading...</h1>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">

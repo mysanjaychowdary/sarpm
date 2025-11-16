@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { showSuccess } from "@/utils/toast";
 import { Link } from "react-router-dom";
 import { CampaignReport } from "@/types";
+import { useSession } from "@/context/SessionContext"; // New import
 
 interface CampaignTableProps {
   reports?: CampaignReport[]; // Optional prop to filter reports
@@ -16,6 +17,7 @@ interface CampaignTableProps {
 
 export function CampaignTable({ reports }: CampaignTableProps) {
   const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus } = useAppContext();
+  const { isAdmin, isEmployee } = useSession(); // Get roles from session
 
   const reportsToDisplay = reports || campaignReports; // Use filtered reports if provided, otherwise all
 
@@ -24,6 +26,10 @@ export function CampaignTable({ reports }: CampaignTableProps) {
   const getPanel3UserEmail = (credId?: string) => credId ? (panel3Credentials.find(c => c.id === credId)?.email || "N/A") : "N/A";
 
   const handleStatusUpdate = async (id: string, currentStatus: string) => {
+    if (!isAdmin && !isEmployee) {
+      showError("You do not have permission to update campaign status.");
+      return;
+    }
     const newStatus = currentStatus === "Pending" ? "Completed" : "Pending"; // Simple toggle for now
     try {
       await updateCampaignStatus(id, newStatus);
@@ -48,7 +54,7 @@ export function CampaignTable({ reports }: CampaignTableProps) {
             <TableHead>Status</TableHead>
             <TableHead>Created Date</TableHead>
             <TableHead>Updated Date</TableHead>
-            <TableHead className="sticky right-0 bg-background z-10">Actions</TableHead>
+            {(isAdmin || isEmployee) && <TableHead className="sticky right-0 bg-background z-10">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -77,19 +83,23 @@ export function CampaignTable({ reports }: CampaignTableProps) {
                 </TableCell>
                 <TableCell>{format(new Date(report.created_date), "PPP p")}</TableCell>
                 <TableCell>{format(new Date(report.updated_date), "PPP p")}</TableCell>
-                <TableCell className="sticky right-0 bg-background z-10 flex space-x-2">
-                  <Link to={`/campaigns/${report.id}`}>
-                    <Button variant="outline" size="sm">View</Button>
-                  </Link>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handleStatusUpdate(report.id, report.status)}
-                  >
-                    {report.status === "Pending" ? "Mark Completed" : "Mark Pending"}
-                  </Button>
-                  <Button variant="destructive" size="sm">Delete</Button>
-                </TableCell>
+                {(isAdmin || isEmployee) && (
+                  <TableCell className="sticky right-0 bg-background z-10 flex space-x-2">
+                    <Link to={`/campaigns/${report.id}`}>
+                      <Button variant="outline" size="sm">View</Button>
+                    </Link>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleStatusUpdate(report.id, report.status)}
+                    >
+                      {report.status === "Pending" ? "Mark Completed" : "Mark Pending"}
+                    </Button>
+                    {isAdmin && ( // Only Admin can delete
+                      <Button variant="destructive" size="sm">Delete</Button>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             ))
           )}
