@@ -40,7 +40,8 @@ const Login = () => {
               },
             }}
             theme="light"
-            view="sign_in" {/* Added to only show the sign-in form */}
+            // Added to only show the sign-in form
+            view="sign_in" 
           />
         </CardContent>
       </Card>
