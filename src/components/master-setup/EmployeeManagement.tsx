@@ -8,10 +8,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { PlusCircle } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import { EmployeeForm } from "./EmployeeForm";
+import { EditEmployeeForm } from "./EditEmployeeForm"; // New import
+import { Employee } from "@/types"; // Import Employee type
 
 export function EmployeeManagement() {
   const { employees } = useAppContext();
   const [isAddEmployeeDialogOpen, setIsAddEmployeeDialogOpen] = useState(false);
+  const [isEditEmployeeDialogOpen, setIsEditEmployeeDialogOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+
+  const handleEditClick = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setIsEditEmployeeDialogOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -56,7 +65,14 @@ export function EmployeeManagement() {
                     <TableCell>{employee.role}</TableCell>
                     <TableCell>{employee.isActive ? "Active" : "Inactive"}</TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm" className="mr-2">Edit</Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mr-2"
+                        onClick={() => handleEditClick(employee)}
+                      >
+                        Edit
+                      </Button>
                       <Button variant="destructive" size="sm">Delete</Button>
                     </TableCell>
                   </TableRow>
@@ -66,6 +82,20 @@ export function EmployeeManagement() {
           </Table>
         </CardContent>
       </Card>
+
+      {selectedEmployee && (
+        <Dialog open={isEditEmployeeDialogOpen} onOpenChange={setIsEditEmployeeDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Edit Employee</DialogTitle>
+            </DialogHeader>
+            <EditEmployeeForm
+              employee={selectedEmployee}
+              onEmployeeUpdated={() => setIsEditEmployeeDialogOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

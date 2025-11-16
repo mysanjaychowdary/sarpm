@@ -62,4 +62,5 @@ export interface AppContextType {
   addCampaignReport: (report: Omit<CampaignReport, "id" | "createdDate" | "updatedDate" | "createdByAdminId">) => void;
   updateCampaignStatus: (id: string, status: CampaignStatus) => void;
   addEmployee: (employee: Omit<Employee, "id">) => void; // New function to add employees
+  updateEmployee: (employee: Employee) => void; // New function to update employees
 }

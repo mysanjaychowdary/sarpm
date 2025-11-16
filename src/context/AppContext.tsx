@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppContextProvider = ({ children }: { ReactNode }) => {
+export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [panels, setPanels] = useState<Panel[]>([
     { id: uuidv4(), name: "Panel 1", description: "Standard campaigns", requiresPanel3Credentials: false },
     { id: uuidv4(), name: "Panel 2", description: "Requires Panel 3 for execution", requiresPanel3Credentials: true },
@@ -63,6 +63,14 @@ export const AppContextProvider = ({ children }: { ReactNode }) => {
     setEmployees((prev) => [...prev, { ...employee, id: uuidv4() }]);
   };
 
+  const updateEmployee = (updatedEmployee: Employee) => {
+    setEmployees((prev) =>
+      prev.map((employee) =>
+        employee.id === updatedEmployee.id ? updatedEmployee : employee
+      )
+    );
+  };
+
   const value = {
     panels,
     panelUsers,
@@ -75,6 +83,7 @@ export const AppContextProvider = ({ children }: { ReactNode }) => {
     addCampaignReport,
     updateCampaignStatus,
     addEmployee, // Include addEmployee in context value
+    updateEmployee, // Include updateEmployee in context value
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
