@@ -12,6 +12,7 @@ import PanelUserManagementPage from "./pages/PanelUserManagementPage";
 import CampaignDetailsPage from "./pages/CampaignDetailsPage";
 import EmployeeManagementPage from "./pages/EmployeeManagementPage";
 import NotFound from "./pages/NotFound";
+import Index from "./pages/Index"; // Import the Index page
 
 const queryClient = new QueryClient();
 
@@ -22,26 +23,19 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AppContextProvider>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <MainLayout>
-                  <Routes>
-                    <Route index element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/campaigns" element={<CampaignsPage />} />
-                    <Route path="/campaigns/:id" element={<CampaignDetailsPage />} />
-                    <Route path="/settings/panels" element={<PanelManagementPage />} />
-                    <Route path="/settings/panel-users" element={<PanelUserManagementPage />} />
-                    <Route path="/settings/employees" element={<EmployeeManagementPage />} />
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </MainLayout>
-              }
-            />
-          </Routes>
+          <MainLayout>
+            <Routes>
+              <Route path="/" element={<Index />} /> {/* Use Index as the initial route */}
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/campaigns" element={<CampaignsPage />} />
+              <Route path="/campaigns/:id" element={<CampaignDetailsPage />} />
+              <Route path="/settings/panels" element={<PanelManagementPage />} />
+              <Route path="/settings/panel-users" element={<PanelUserManagementPage />} />
+              <Route path="/settings/employees" element={<EmployeeManagementPage />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </MainLayout>
         </AppContextProvider>
       </BrowserRouter>
     </TooltipProvider>
