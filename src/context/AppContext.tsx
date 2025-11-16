@@ -7,7 +7,7 @@ import { showSuccess, showError } from "@/utils/toast";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppContextProvider = ({ children }: { ReactNode }) => {
+export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [panels, setPanels] = useState<Panel[]>([]);
   const [panelUsers, setPanelUsers] = useState<PanelUser[]>([]);
   const [panel3Credentials, setPanel3Credentials] = useState<Panel3Credential[]>([]);
