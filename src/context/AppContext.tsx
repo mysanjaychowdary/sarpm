@@ -4,10 +4,12 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useCa
 import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus, Employee } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
+import { useSession } from "./SessionContext"; // Import useSession
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppContextProvider = ({ children }: { children: ReactNode }) => {
+  const { user, isLoading: isAuthLoading } = useSession(); // Get user from session
   const [panels, setPanels] = useState<Panel[]>([]);
   const [panelUsers, setPanelUsers] = useState<PanelUser[]>([]);
   const [panel3Credentials, setPanel3Credentials] = useState<Panel3Credential[]>([]);
@@ -17,6 +19,11 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
@@ -47,11 +54,13 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]); // Re-fetch data when user changes
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!isAuthLoading) {
+      fetchData();
+    }
+  }, [fetchData, isAuthLoading]);
 
   const addPanel = async (panel: Omit<Panel, "id">) => {
     const { data, error } = await supabase.from('panels').insert(panel).select();
@@ -103,8 +112,12 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addCampaignReport = async (report: Omit<CampaignReport, "id" | "created_date" | "updated_date" | "created_by_admin_id">) => {
+    if (!user) {
+      showError("You must be logged in to create a campaign report.");
+      return;
+    }
     const now = new Date().toISOString();
-    const newReport = { ...report, created_date: now, updated_date: now, created_by_admin_id: "admin_user_id" }; // Placeholder admin ID
+    const newReport = { ...report, created_date: now, updated_date: now, created_by_admin_id: user.id }; // Use actual admin ID
     const { data, error } = await supabase.from('campaign_reports').insert(newReport).select();
     if (error) {
       showError("Failed to create campaign report: " + error.message);
@@ -163,7 +176,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     updateCampaignStatus,
     addEmployee,
     updateEmployee,
-    isLoading,
+    isLoading: isLoading || isAuthLoading, // Combine loading states
     error,
   };
 
