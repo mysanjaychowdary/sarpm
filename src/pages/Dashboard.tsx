@@ -16,28 +16,24 @@ const Dashboard = () => {
   const { user } = useSession(); // Get current user
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // Determine if the current user is an admin
+  const currentUserTeamMember = useMemo(() => {
+    return teamMembers.find(member => member.id === user?.id);
+  }, [teamMembers, user]);
+  const isAdmin = currentUserTeamMember?.role === "Admin";
+
   console.log("Dashboard: Rendering. isLoading:", isLoading, "error:", error, "campaignReports count:", campaignReports.length);
 
-  // Filter campaigns based on user role
-  const userCampaignReports = useMemo(() => {
-    if (!user) return []; // No user, no reports
-    const currentUserTeamMember = teamMembers.find(member => member.id === user.id);
-
-    if (currentUserTeamMember?.role === "Admin") {
-      return campaignReports; // Admins see all
-    } else {
-      // Team Members only see campaigns they created
-      return campaignReports.filter(report => report.created_by_admin_id === user.id);
-    }
-  }, [campaignReports, user, teamMembers]);
+  // All authenticated users (Admins and Team Members) can see all campaigns
+  const allCampaignReports = campaignReports;
 
   const todayReports = useMemo(() => {
-    return userCampaignReports.filter(report => isToday(new Date(report.created_date)));
-  }, [userCampaignReports]);
+    return allCampaignReports.filter(report => isToday(new Date(report.created_date)));
+  }, [allCampaignReports]);
 
   const todayPendingReports = todayReports.filter(report => report.status === "Pending");
   const todayCompletedReports = todayReports.filter(report => report.status === "Completed");
-  const recentlyAddedReports = userCampaignReports.slice(0, 5); // Slice from filtered reports
+  const recentlyAddedReports = allCampaignReports.slice(0, 5); // Slice from all reports
 
   if (isLoading) {
     console.log("Dashboard: Showing loading state.");
@@ -71,19 +67,21 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Campaign Dashboard</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add New Campaign
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create New Campaign Report</DialogTitle>
-            </DialogHeader>
-            <CampaignEntryForm onCampaignAdded={() => setIsDialogOpen(false)} />
-          </DialogContent>
-        </Dialog>
+        {isAdmin && ( // Only show "Add New Campaign" button if user is an Admin
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" /> Add New Campaign
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Create New Campaign Report</DialogTitle>
+              </DialogHeader>
+              <CampaignEntryForm onCampaignAdded={() => setIsDialogOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -112,7 +110,7 @@ const Dashboard = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Campaigns</CardTitle>
-            <span className="text-2xl font-bold">{userCampaignReports.length}</span>
+            <span className="text-2xl font-bold">{allCampaignReports.length}</span>
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground">

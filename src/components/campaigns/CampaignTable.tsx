@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,14 @@ interface CampaignTableProps {
 }
 
 export function CampaignTable({ reports }: CampaignTableProps) {
-  const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus } = useAppContext();
-  const { session } = useSession(); // Get session info
+  const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus, teamMembers } = useAppContext();
+  const { user } = useSession(); // Get session info
+
+  // Determine if the current user is an admin
+  const currentUserTeamMember = useMemo(() => {
+    return teamMembers.find(member => member.id === user?.id);
+  }, [teamMembers, user]);
+  const isAdmin = currentUserTeamMember?.role === "Admin";
 
   const reportsToDisplay = reports || campaignReports; // Use filtered reports if provided, otherwise all
 
@@ -83,7 +89,7 @@ export function CampaignTable({ reports }: CampaignTableProps) {
                   <Link to={`/campaigns/${report.id}`}>
                     <Button variant="outline" size="sm">View</Button>
                   </Link>
-                  {session && ( // Only show update status button if authenticated
+                  {user && ( // Show update status button for all authenticated users
                     <Button
                       variant="secondary"
                       size="sm"
@@ -92,7 +98,7 @@ export function CampaignTable({ reports }: CampaignTableProps) {
                       {report.status === "Pending" ? "Mark Completed" : "Mark Pending"}
                     </Button>
                   )}
-                  {session && ( // Only show delete button if authenticated
+                  {isAdmin && ( // Only show delete button if user is an Admin
                     <Button variant="destructive" size="sm">Delete</Button>
                   )}
                 </TableCell>

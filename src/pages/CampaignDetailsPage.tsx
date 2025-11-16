@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppContext } from "@/context/AppContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,11 +24,17 @@ import { useSession } from "@/context/SessionContext"; // Import useSession
 const CampaignDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus, isLoading, error } = useAppContext();
-  const { session } = useSession(); // Get session info
+  const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus, isLoading, error, teamMembers } = useAppContext();
+  const { user } = useSession(); // Get session info
   const [showPanel3Password, setShowPanel3Password] = useState(false);
   const [isStatusUpdateDialogOpen, setIsStatusUpdateDialogOpen] = useState(false);
   const [statusUpdateRemarks, setStatusUpdateRemarks] = useState("");
+
+  // Determine if the current user is an admin
+  const currentUserTeamMember = useMemo(() => {
+    return teamMembers.find(member => member.id === user?.id);
+  }, [teamMembers, user]);
+  const isAdmin = currentUserTeamMember?.role === "Admin";
 
   const report = campaignReports.find((r) => r.id === id);
 
@@ -208,7 +214,7 @@ const CampaignDetailsPage = () => {
         </Card>
       )}
 
-      {session && ( // Only show actions if authenticated
+      {user && ( // Only show actions if authenticated
         <Card>
           <CardHeader>
             <CardTitle>Actions</CardTitle>
@@ -262,7 +268,9 @@ const CampaignDetailsPage = () => {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-            <Button variant="destructive">Delete Campaign</Button>
+            {isAdmin && ( // Only show delete button if user is an Admin
+              <Button variant="destructive">Delete Campaign</Button>
+            )}
           </CardContent>
         </Card>
       )}
