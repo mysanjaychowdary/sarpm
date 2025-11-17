@@ -72,20 +72,22 @@ serve(async (req) => {
 
     // Send the SMS
     const smsResponse = await fetch(smsApiUrl);
+    const smsData = await smsResponse.json(); // Always try to parse JSON
 
-    if (!smsResponse.ok) {
-      const errorText = await smsResponse.text(); // Get raw text for more info
-      console.error(`SMS API returned non-OK status: ${smsResponse.status} ${smsResponse.statusText}`);
-      console.error('SMS API raw error response:', errorText);
-      return new Response(JSON.stringify({ error: 'Failed to send SMS: ' + errorText }), {
-        status: smsResponse.status,
+    console.log('SMS API raw response status:', smsResponse.status);
+    console.log('SMS API raw response data:', smsData);
+
+    if (!smsResponse.ok || (Array.isArray(smsData) && smsData.length === 0)) {
+      // If response is not OK, or it's an empty array (which is suspicious for success)
+      const errorMessage = smsData && smsData.message ? smsData.message : 'Unknown error from SMS API or empty success response.';
+      console.error(`SMS API returned non-OK status or empty data: ${smsResponse.status} - ${JSON.stringify(smsData)}`);
+      return new Response(JSON.stringify({ error: 'Failed to send SMS: ' + errorMessage }), {
+        status: smsResponse.status !== 200 ? smsResponse.status : 500, // Use actual status or 500 if 200 with empty data
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const smsData = await smsResponse.json();
-    console.log('SMS API successful response:', smsData);
-
+    // Assuming a non-empty JSON response indicates success for now
     return new Response(JSON.stringify({ message: 'SMS sent successfully', smsResponse: smsData }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
