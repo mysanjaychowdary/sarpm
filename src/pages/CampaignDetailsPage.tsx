@@ -106,8 +106,8 @@ const CampaignDetailsPage = () => {
         const panelUserName = panelUser?.username || "a user";
         const smsMessage = `Campaign "${report.campaign_name}" (${report.campaign_id}) status updated to "${newStatus}" for ${panelUserName}. Remarks: ${statusUpdateRemarks || 'N/A'}`;
         
-        const firstSmsCredential = smsApiCredentials[0]; // Use the first available credential
-        const recipientPhoneNumber = firstSmsCredential.mobile_number;
+        // Use the specific mobile number provided by the user
+        const recipientPhoneNumber = "917036098991";
 
         if (!recipientPhoneNumber) {
           console.warn("No recipient mobile number configured for SMS notifications. Skipping SMS.");
