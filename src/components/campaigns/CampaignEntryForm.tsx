@@ -108,13 +108,16 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
         const panelUserName = panelUsers.find(u => u.id === values.panel_user_id)?.username || "a user";
         const smsMessage = `New campaign "${values.campaign_name}" (${values.campaign_id}) created for ${panelUserName} on ${format(values.campaign_date, "PPP")}. Type: ${values.campaign_type}.`;
         
-        const firstSmsCredential = smsApiCredentials[0]; // Use the first available credential
-        const recipientPhoneNumber = firstSmsCredential.mobile_number;
+        let smsSentCount = 0;
+        for (const credential of smsApiCredentials) {
+          const recipientPhoneNumber = credential.mobile_number;
 
-        if (!recipientPhoneNumber) {
-          console.warn("No recipient mobile number configured for SMS notifications. Skipping SMS.");
-          showError("No recipient mobile number configured for SMS notifications.");
-        } else {
+          if (!recipientPhoneNumber) {
+            console.warn(`SMS API credential with ID ${credential.id} has no recipient mobile number configured. Skipping SMS for this credential.`);
+            showError(`SMS API credential with ID ${credential.id} has no recipient mobile number configured.`);
+            continue;
+          }
+
           try {
             // Invoke the Edge Function to send SMS
             const { data, error: smsError } = await supabase.functions.invoke('send-sms', {
@@ -129,18 +132,24 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
             });
 
             if (smsError) {
-              console.error('SMS Edge Function error:', smsError.message);
-              showError('Failed to send SMS: ' + smsError.message);
+              console.error(`SMS Edge Function error for ${recipientPhoneNumber}:`, smsError.message);
+              showError(`Failed to send SMS to ${recipientPhoneNumber}: ` + smsError.message);
             } else if (data && data.message) {
-              showSuccess("SMS notification sent: " + data.message);
+              showSuccess(`SMS notification sent to ${recipientPhoneNumber}: ` + data.message);
+              smsSentCount++;
             } else {
-              showError("An unexpected error occurred during SMS notification.");
+              showError(`An unexpected error occurred during SMS notification to ${recipientPhoneNumber}.`);
             }
           } catch (invokeError: any) {
-            console.error("Unexpected error invoking send-sms function:", invokeError);
-            showError("An unexpected error occurred while sending SMS: " + invokeError.message);
+            console.error(`Unexpected error invoking send-sms function for ${recipientPhoneNumber}:`, invokeError);
+            showError(`An unexpected error occurred while sending SMS to ${recipientPhoneNumber}: ` + invokeError.message);
           }
         }
+
+        if (smsSentCount === 0) {
+          showError("No SMS notifications were successfully sent.");
+        }
+
       } else if (smsApiCredentials.length === 0) {
         console.warn("No SMS API credentials configured. Skipping SMS notification.");
       } else if (!session) {
