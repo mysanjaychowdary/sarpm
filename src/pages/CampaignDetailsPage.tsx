@@ -20,12 +20,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useSession } from "@/context/SessionContext"; // Import useSession
+import { supabase } from "@/integrations/supabase/client"; // Import supabase client
 
 const CampaignDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus, isLoading, error, teamMembers } = useAppContext();
-  const { user } = useSession(); // Get session info
+  const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus, isLoading, error, teamMembers, smsApiCredentials } = useAppContext();
+  const { user, session } = useSession(); // Get session info
   const [showPanel3Password, setShowPanel3Password] = useState(false);
   const [isStatusUpdateDialogOpen, setIsStatusUpdateDialogOpen] = useState(false);
   const [statusUpdateRemarks, setStatusUpdateRemarks] = useState("");
@@ -99,6 +100,51 @@ const CampaignDetailsPage = () => {
       setIsStatusUpdateDialogOpen(false);
       setStatusUpdateRemarks(""); // Clear remarks after update
       // In a real app, you'd also save remarks and audit log here.
+
+      // --- SMS Notification Logic ---
+      if (smsApiCredentials.length > 0 && session) {
+        const panelUserName = panelUser?.username || "a user";
+        const smsMessage = `Campaign "${report.campaign_name}" (${report.campaign_id}) status updated to "${newStatus}" for ${panelUserName}. Remarks: ${statusUpdateRemarks || 'N/A'}`;
+        
+        const firstSmsCredential = smsApiCredentials[0]; // Use the first available credential
+        const recipientPhoneNumber = firstSmsCredential.mobile_number;
+
+        if (!recipientPhoneNumber) {
+          console.warn("No recipient mobile number configured for SMS notifications. Skipping SMS.");
+          showError("No recipient mobile number configured for SMS notifications.");
+        } else {
+          try {
+            const { data, error: smsError } = await supabase.functions.invoke('send-sms', {
+              body: JSON.stringify({
+                phoneNumber: recipientPhoneNumber,
+                message: smsMessage,
+              }),
+              headers: {
+                'Authorization': `Bearer ${session.access_token}`,
+                'Content-Type': 'application/json',
+              },
+            });
+
+            if (smsError) {
+              console.error('SMS Edge Function error:', smsError.message);
+              showError('Failed to send SMS: ' + smsError.message);
+            } else if (data && data.message) {
+              showSuccess("SMS notification sent: " + data.message);
+            } else {
+              showError("An unexpected error occurred during SMS notification.");
+            }
+          } catch (invokeError: any) {
+            console.error("Unexpected error invoking send-sms function:", invokeError);
+            showError("An unexpected error occurred while sending SMS: " + invokeError.message);
+          }
+        }
+      } else if (smsApiCredentials.length === 0) {
+        console.warn("No SMS API credentials configured. Skipping SMS notification.");
+      } else if (!session) {
+        console.warn("User session not available. Skipping SMS notification.");
+      }
+      // --- End SMS Notification Logic ---
+
     } catch (error) {
       // Error handled by AppContext
     }

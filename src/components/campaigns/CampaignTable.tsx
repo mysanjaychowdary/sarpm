@@ -6,18 +6,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAppContext } from "@/context/AppContext";
 import { format } from "date-fns";
-import { showSuccess } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
 import { Link } from "react-router-dom";
 import { CampaignReport } from "@/types";
 import { useSession } from "@/context/SessionContext"; // Import useSession
+import { supabase } from "@/integrations/supabase/client"; // Import supabase client
 
 interface CampaignTableProps {
   reports?: CampaignReport[]; // Optional prop to filter reports
 }
 
 export function CampaignTable({ reports }: CampaignTableProps) {
-  const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus, teamMembers } = useAppContext();
-  const { user } = useSession(); // Get session info
+  const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus, teamMembers, smsApiCredentials } = useAppContext();
+  const { user, session } = useSession(); // Get session info
 
   // Determine if the current user is an admin
   const currentUserTeamMember = useMemo(() => {
@@ -31,11 +32,56 @@ export function CampaignTable({ reports }: CampaignTableProps) {
   const getPanelUserName = (userId: string) => panelUsers.find(u => u.id === userId)?.username || "N/A";
   const getPanel3UserEmail = (credId?: string) => credId ? (panel3Credentials.find(c => c.id === credId)?.email || "N/A") : "N/A";
 
-  const handleStatusUpdate = async (id: string, currentStatus: string) => {
+  const handleStatusUpdate = async (report: CampaignReport, currentStatus: string) => {
     const newStatus = currentStatus === "Pending" ? "Completed" : "Pending"; // Simple toggle for now
     try {
-      await updateCampaignStatus(id, newStatus);
+      await updateCampaignStatus(report.id, newStatus);
       showSuccess(`Campaign status updated to ${newStatus}!`);
+
+      // --- SMS Notification Logic ---
+      if (smsApiCredentials.length > 0 && session) {
+        const panelUserName = getPanelUserName(report.panel_user_id);
+        const smsMessage = `Campaign "${report.campaign_name}" (${report.campaign_id}) status updated to "${newStatus}" for ${panelUserName}.`;
+        
+        const firstSmsCredential = smsApiCredentials[0]; // Use the first available credential
+        const recipientPhoneNumber = firstSmsCredential.mobile_number;
+
+        if (!recipientPhoneNumber) {
+          console.warn("No recipient mobile number configured for SMS notifications. Skipping SMS.");
+          showError("No recipient mobile number configured for SMS notifications.");
+        } else {
+          try {
+            const { data, error: smsError } = await supabase.functions.invoke('send-sms', {
+              body: JSON.stringify({
+                phoneNumber: recipientPhoneNumber,
+                message: smsMessage,
+              }),
+              headers: {
+                'Authorization': `Bearer ${session.access_token}`,
+                'Content-Type': 'application/json',
+              },
+            });
+
+            if (smsError) {
+              console.error('SMS Edge Function error:', smsError.message);
+              showError('Failed to send SMS: ' + smsError.message);
+            } else if (data && data.message) {
+              showSuccess("SMS notification sent: " + data.message);
+            } else {
+              showError("An unexpected error occurred during SMS notification.");
+            }
+          } catch (invokeError: any) {
+            console.error("Unexpected error invoking send-sms function:", invokeError);
+            showError("An unexpected error occurred while sending SMS: " + invokeError.message);
+          }
+        }
+      } else if (smsApiCredentials.length === 0) {
+        console.warn("No SMS API credentials configured. Skipping SMS notification.");
+      } else if (!session) {
+        console.warn("User session not available. Skipping SMS notification.");
+      }
+      // --- End SMS Notification Logic ---
+
     } catch (error) {
       // Error handled by AppContext
     }
@@ -93,7 +139,7 @@ export function CampaignTable({ reports }: CampaignTableProps) {
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => handleStatusUpdate(report.id, report.status)}
+                      onClick={() => handleStatusUpdate(report, report.status)}
                     >
                       {report.status === "Pending" ? "Mark Completed" : "Mark Pending"}
                     </Button>
