@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
-import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus, TeamMember } from "@/types";
+import { Panel, PanelUser, Panel3Credential, CampaignReport, AppContextType, CampaignStatus, TeamMember, SmsApiCredential } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
 import { useSession } from "./SessionContext"; // Import useSession
@@ -13,6 +13,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [panels, setPanels] = useState<Panel[]>([]);
   const [panelUsers, setPanelUsers] = useState<PanelUser[]>([]);
   const [panel3Credentials, setPanel3Credentials] = useState<Panel3Credential[]>([]);
+  const [smsApiCredentials, setSmsApiCredentials] = useState<SmsApiCredential[]>([]); // New: SMS API credentials state
   const [campaignReports, setCampaignReports] = useState<CampaignReport[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]); // New: Team members state
   const [isLoading, setIsLoading] = useState(true);
@@ -41,6 +42,12 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
       if (panel3CredentialsError) throw panel3CredentialsError;
       setPanel3Credentials(panel3CredentialsData || []);
       console.log("AppContext: Panel 3 credentials fetched:", panel3CredentialsData?.length);
+
+      console.log("AppContext: Fetching sms_api_credentials..."); // New: Fetch SMS API credentials
+      const { data: smsApiCredentialsData, error: smsApiCredentialsError } = await supabase.from('sms_api_credentials').select('*');
+      if (smsApiCredentialsError) throw smsApiCredentialsError;
+      setSmsApiCredentials(smsApiCredentialsData || []);
+      console.log("AppContext: SMS API credentials fetched:", smsApiCredentialsData?.length);
 
       console.log("AppContext: Fetching campaign_reports...");
       const { data: campaignReportsData, error: campaignReportsError } = await supabase.from('campaign_reports').select('*').order('created_date', { ascending: false });
@@ -74,7 +81,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     console.log("AppContext: Adding panel:", panel.name);
     const { data, error } = await supabase.from('panels').insert(panel).select();
     if (error) {
-      showError("Failed to add panel: " + error.message);
+      showError("Failed to add panel: "      + error.message);
       throw error;
     }
     setPanels((prev) => [...prev, data[0]]);
@@ -85,7 +92,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     console.log("AppContext: Updating panel:", updatedPanel.name);
     const { data, error } = await supabase.from('panels').update(updatedPanel).eq('id', updatedPanel.id).select();
     if (error) {
-      showError("Failed to update panel: " + error.message);
+      showError("Failed to update panel: "      + error.message);
       throw error;
     }
     setPanels((prev) =>
@@ -98,7 +105,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     console.log("AppContext: Deleting panel with ID:", id);
     const { error } = await supabase.from('panels').delete().eq('id', id);
     if (error) {
-      showError("Failed to delete panel: " + error.message);
+      showError("Failed to delete panel: "      + error.message);
       throw error;
     }
     setPanels((prev) => prev.filter((panel) => panel.id !== id));
@@ -111,7 +118,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     console.log("AppContext: Adding panel user:", user.username);
     const { data, error } = await supabase.from('panel_users').insert(user).select();
     if (error) {
-      showError("Failed to add panel user: " + error.message);
+      showError("Failed to add panel user: "      + error.message);
       throw error;
     }
     setPanelUsers((prev) => [...prev, data[0]]);
@@ -122,11 +129,52 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     console.log("AppContext: Adding Panel 3 credential for email:", credential.email);
     const { data, error } = await supabase.from('panel3_credentials').insert(credential).select();
     if (error) {
-      showError("Failed to add Panel 3 credential: " + error.message);
+      showError("Failed to add Panel 3 credential: "      + error.message);
       throw error;
     }
     setPanel3Credentials((prev) => [...prev, data[0]]);
     showSuccess("Panel 3 credential added successfully!");
+  };
+
+  // New: SMS API Credential CRUD operations
+  const addSmsApiCredential = async (credential: Omit<SmsApiCredential, "id" | "created_at" | "created_by">) => {
+    console.log("AppContext: Adding SMS API credential for instance ID:", credential.instance_id);
+    if (!user) {
+      showError("User not authenticated to add SMS API credentials.");
+      throw new Error("User not authenticated.");
+    }
+    const newCredential = { ...credential, created_by: user.id };
+    const { data, error } = await supabase.from('sms_api_credentials').insert(newCredential).select();
+    if (error) {
+      showError("Failed to add SMS API credential: "      + error.message);
+      throw error;
+    }
+    setSmsApiCredentials((prev) => [...prev, data[0]]);
+    showSuccess("SMS API credential added successfully!");
+  };
+
+  const updateSmsApiCredential = async (updatedCredential: SmsApiCredential) => {
+    console.log("AppContext: Updating SMS API credential for instance ID:", updatedCredential.instance_id);
+    const { data, error } = await supabase.from('sms_api_credentials').update(updatedCredential).eq('id', updatedCredential.id).select();
+    if (error) {
+      showError("Failed to update SMS API credential: "      + error.message);
+      throw error;
+    }
+    setSmsApiCredentials((prev) =>
+      prev.map((cred) => (cred.id === updatedCredential.id ? data[0] : cred))
+    );
+    showSuccess("SMS API credential updated successfully!");
+  };
+
+  const deleteSmsApiCredential = async (id: string) => {
+    console.log("AppContext: Deleting SMS API credential with ID:", id);
+    const { error } = await supabase.from('sms_api_credentials').delete().eq('id', id);
+    if (error) {
+      showError("Failed to delete SMS API credential: "      + error.message);
+      throw error;
+    }
+    setSmsApiCredentials((prev) => prev.filter((cred) => cred.id !== id));
+    showSuccess("SMS API credential deleted successfully!");
   };
 
   const addCampaignReport = async (report: Omit<CampaignReport, "id" | "created_date" | "updated_date" | "created_by_admin_id">) => {
@@ -135,7 +183,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     const newReport = { ...report, created_date: now, updated_date: now, created_by_admin_id: user?.id || "anonymous" }; // Use auth.uid()
     const { data, error } = await supabase.from('campaign_reports').insert(newReport).select();
     if (error) {
-      showError("Failed to create campaign report: " + error.message);
+      showError("Failed to create campaign report: "      + error.message);
       throw error;
     }
     setCampaignReports((prev) => [data[0], ...prev]);
@@ -146,7 +194,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     console.log(`AppContext: Updating campaign ${id} status to ${status}`);
     const { data, error } = await supabase.from('campaign_reports').update({ status, updated_date: new Date().toISOString() }).eq('id', id).select();
     if (error) {
-      showError("Failed to update campaign status: " + error.message);
+      showError("Failed to update campaign status: "      + error.message);
       throw error;
     }
     setCampaignReports((prev) =>
@@ -166,7 +214,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     // In a real scenario, you'd use supabase.auth.admin.createUser() on the server-side.
     const { data, error } = await supabase.from('team_members').insert(member).select();
     if (error) {
-      showError("Failed to add team member: " + error.message);
+      showError("Failed to add team member: "      + error.message);
       throw error;
     }
     setTeamMembers((prev) => [...prev, data[0]]);
@@ -177,7 +225,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     console.log("AppContext: Updating team member:", updatedMember.name);
     const { data, error } = await supabase.from('team_members').update(updatedMember).eq('id', updatedMember.id).select();
     if (error) {
-      showError("Failed to update team member: " + error.message);
+      showError("Failed to update team member: "      + error.message);
       throw error;
     }
     setTeamMembers((prev) =>
@@ -190,7 +238,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     console.log("AppContext: Deleting team member with ID:", id);
     const { error } = await supabase.from('team_members').delete().eq('id', id);
     if (error) {
-      showError("Failed to delete team member: " + error.message);
+      showError("Failed to delete team member: "      + error.message);
       throw error;
     }
     setTeamMembers((prev) => prev.filter((member) => member.id !== id));
@@ -201,6 +249,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     panels,
     panelUsers,
     panel3Credentials,
+    smsApiCredentials, // New: smsApiCredentials in context value
     campaignReports,
     teamMembers, // New: teamMembers in context value
     addPanel,
@@ -208,6 +257,9 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     deletePanel,
     addPanelUser,
     addPanel3Credential,
+    addSmsApiCredential, // New: addSmsApiCredential function
+    updateSmsApiCredential, // New: updateSmsApiCredential function
+    deleteSmsApiCredential, // New: deleteSmsApiCredential function
     addCampaignReport,
     updateCampaignStatus,
     addTeamMember, // New: addTeamMember function

@@ -24,6 +24,8 @@ import { RefreshCcw, CalendarIcon } from "lucide-react";
 import { CampaignType } from "@/types";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client"; // Import supabase client
+import { useSession } from "@/context/SessionContext"; // Import useSession
 
 const campaignFormSchema = z.object({
   campaign_id: z.string().min(1, { message: "Campaign ID is required." }), // Auto-generate a short ID
@@ -45,7 +47,8 @@ interface CampaignEntryFormProps {
 }
 
 export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
-  const { panels, panelUsers, panel3Credentials, addCampaignReport } = useAppContext();
+  const { panels, panelUsers, panel3Credentials, addCampaignReport, smsApiCredentials } = useAppContext();
+  const { session } = useSession();
   const [selectedPanelRequiresPanel3, setSelectedPanelRequiresPanel3] = useState(false);
 
   const form = useForm<z.infer<typeof campaignFormSchema>>({
@@ -99,6 +102,44 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
         campaign_date: values.campaign_date.toISOString(), // Save as ISO string
       });
       showSuccess("Campaign report created successfully!");
+      
+      // --- SMS Notification Logic ---
+      if (smsApiCredentials.length > 0 && session) {
+        const panelUserName = panelUsers.find(u => u.id === values.panel_user_id)?.username || "a user";
+        const smsMessage = `New campaign "${values.campaign_name}" (${values.campaign_id}) created for ${panelUserName} on ${format(values.campaign_date, "PPP")}. Type: ${values.campaign_type}.`;
+        
+        // Placeholder phone number. In a real app, this would come from user data.
+        const recipientPhoneNumber = "84933313xxx"; 
+
+        try {
+          const { data, error } = await supabase.functions.invoke('send-sms', {
+            body: JSON.stringify({
+              phoneNumber: recipientPhoneNumber,
+              message: smsMessage,
+            }),
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (error) {
+            console.error("Error sending SMS:", error);
+            showError("Failed to send SMS notification: " + error.message);
+          } else if (data && data.message) {
+            showSuccess("SMS notification sent: " + data.message);
+          }
+        } catch (smsError: any) {
+          console.error("Unexpected error invoking send-sms function:", smsError);
+          showError("An unexpected error occurred while sending SMS: " + smsError.message);
+        }
+      } else if (smsApiCredentials.length === 0) {
+        console.warn("No SMS API credentials configured. Skipping SMS notification.");
+      } else if (!session) {
+        console.warn("User session not available. Skipping SMS notification.");
+      }
+      // --- End SMS Notification Logic ---
+
       form.reset({
         campaign_id: uuidv4().substring(0, 8),
         campaign_name: "",

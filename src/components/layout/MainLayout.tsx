@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { SidebarNav } from "./SidebarNav";
-import { Home, ListChecks, LayoutDashboard, Users, UserRound } from "lucide-react";
+import { Home, ListChecks, LayoutDashboard, Users, UserRound, MessageSquareText } from "lucide-react"; // Import MessageSquareText icon
 import { Outlet } from "react-router-dom";
 import { useSession } from "@/context/SessionContext";
 import { useAppContext } from "@/context/AppContext";
@@ -70,6 +70,12 @@ const MainLayout: React.FC = () => {
         title: "Team Member Management",
         href: "/settings/team-members",
         icon: UserRound,
+        adminOnly: true,
+      },
+      {
+        title: "SMS API Settings", // New item
+        href: "/settings/sms-api",
+        icon: MessageSquareText, // New icon
         adminOnly: true,
       },
     ];

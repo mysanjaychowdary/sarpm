@@ -20,6 +20,14 @@ export interface Panel3Credential {
   api_password_placeholder: string; // Changed to snake_case
 }
 
+export interface SmsApiCredential {
+  id: string;
+  instance_id: string;
+  access_token: string;
+  created_at: string;
+  created_by: string; // User ID of who created it
+}
+
 export type CampaignStatus = "Pending" | "Completed";
 export type CampaignType = "Normal" | "Priority" | "Urgent";
 
@@ -52,6 +60,7 @@ export interface AppContextType {
   panels: Panel[];
   panelUsers: PanelUser[];
   panel3Credentials: Panel3Credential[];
+  smsApiCredentials: SmsApiCredential[]; // New: SMS API credentials state
   campaignReports: CampaignReport[];
   teamMembers: TeamMember[]; // New: Team members state
   isLoading: boolean; // Added for loading state
@@ -61,6 +70,9 @@ export interface AppContextType {
   deletePanel: (id: string) => Promise<void>;
   addPanelUser: (user: Omit<PanelUser, "id">) => Promise<void>;
   addPanel3Credential: (credential: Omit<Panel3Credential, "id">) => Promise<void>;
+  addSmsApiCredential: (credential: Omit<SmsApiCredential, "id" | "created_at" | "created_by">) => Promise<void>; // New: Add SMS API credential
+  updateSmsApiCredential: (credential: SmsApiCredential) => Promise<void>; // New: Update SMS API credential
+  deleteSmsApiCredential: (id: string) => Promise<void>; // New: Delete SMS API credential
   addCampaignReport: (report: Omit<CampaignReport, "id" | "created_date" | "updated_date" | "created_by_admin_id">) => Promise<void>; // Updated field names
   updateCampaignStatus: (id: string, status: CampaignStatus) => Promise<void>;
   addTeamMember: (member: Omit<TeamMember, "id" | "created_at">) => Promise<void>; // New: Add team member

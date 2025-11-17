@@ -14,6 +14,7 @@ import PanelManagementPage from "./pages/PanelManagementPage";
 import PanelUserManagementPage from "./pages/PanelUserManagementPage";
 import CampaignDetailsPage from "./pages/CampaignDetailsPage";
 import TeamMemberManagementPage from "./pages/TeamMemberManagementPage";
+import SmsApiSettingsPage from "./pages/SmsApiSettingsPage"; // New: Import SmsApiSettingsPage
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -43,6 +44,7 @@ const App = () => (
                       <Route path="/settings/panels" element={<PanelManagementPage />} />
                       <Route path="/settings/panel-users" element={<PanelUserManagementPage />} />
                       <Route path="/settings/team-members" element={<TeamMemberManagementPage />} />
+                      <Route path="/settings/sms-api" element={<SmsApiSettingsPage />} /> {/* New: SMS API Settings route */}
                     </Route>
                     {/* Catch-all for 404 */}
                     <Route path="*" element={<NotFound />} />
