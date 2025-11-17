@@ -110,29 +110,35 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
         
         const firstSmsCredential = smsApiCredentials[0]; // Use the first available credential
         const recipientPhoneNumber = firstSmsCredential.mobile_number;
-        const instanceId = firstSmsCredential.instance_id;
-        const accessToken = firstSmsCredential.access_token;
 
         if (!recipientPhoneNumber) {
           console.warn("No recipient mobile number configured for SMS notifications. Skipping SMS.");
           showError("No recipient mobile number configured for SMS notifications.");
         } else {
           try {
-            const encodedMessage = encodeURIComponent(smsMessage);
-            const smsApiUrl = `https://whatsupsms.in/api/send?number=${recipientPhoneNumber}&type=text&message=${encodedMessage}&instance_id=${instanceId}&access_token=${accessToken}`;
+            // Invoke the Edge Function to send SMS
+            const { data, error: smsError } = await supabase.functions.invoke('send-sms', {
+              body: JSON.stringify({
+                phoneNumber: recipientPhoneNumber,
+                message: smsMessage,
+              }),
+              headers: {
+                'Authorization': `Bearer ${session.access_token}`, // Pass the current user's token for authorization
+                'Content-Type': 'application/json',
+              },
+            });
 
-            const smsResponse = await fetch(smsApiUrl);
-            const smsData = await smsResponse.json();
-
-            if (!smsResponse.ok) {
-              console.error('SMS API error:', smsData);
-              showError('Failed to send SMS: ' + (smsData.message || 'Unknown error'));
+            if (smsError) {
+              console.error('SMS Edge Function error:', smsError.message);
+              showError('Failed to send SMS: ' + smsError.message);
+            } else if (data && data.message) {
+              showSuccess("SMS notification sent: " + data.message);
             } else {
-              showSuccess("SMS notification sent: " + smsData.message);
+              showError("An unexpected error occurred during SMS notification.");
             }
-          } catch (smsError: any) {
-            console.error("Unexpected error sending SMS:", smsError);
-            showError("An unexpected error occurred while sending SMS: " + smsError.message);
+          } catch (invokeError: any) {
+            console.error("Unexpected error invoking send-sms function:", invokeError);
+            showError("An unexpected error occurred while sending SMS: " + invokeError.message);
           }
         }
       } else if (smsApiCredentials.length === 0) {
