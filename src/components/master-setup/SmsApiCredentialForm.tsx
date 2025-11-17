@@ -23,6 +23,7 @@ import { useSession } from "@/context/SessionContext";
 const smsApiCredentialFormSchema = z.object({
   instance_id: z.string().min(1, { message: "Instance ID is required." }),
   access_token: z.string().min(1, { message: "Access Token is required." }),
+  mobile_number: z.string().min(10, { message: "Mobile number must be at least 10 digits." }).max(15, { message: "Mobile number cannot exceed 15 digits." }).regex(/^\+?[1-9]\d{9,14}$/, { message: "Invalid mobile number format." }),
 });
 
 interface SmsApiCredentialFormProps {
@@ -38,6 +39,7 @@ export function SmsApiCredentialForm({ onCredentialAdded }: SmsApiCredentialForm
     defaultValues: {
       instance_id: "",
       access_token: "",
+      mobile_number: "",
     },
   });
 
@@ -50,6 +52,7 @@ export function SmsApiCredentialForm({ onCredentialAdded }: SmsApiCredentialForm
       await addSmsApiCredential({
         instance_id: values.instance_id,
         access_token: values.access_token,
+        mobile_number: values.mobile_number,
       });
       showSuccess("SMS API credential added successfully!");
       form.reset();
@@ -86,6 +89,22 @@ export function SmsApiCredentialForm({ onCredentialAdded }: SmsApiCredentialForm
               </FormControl>
               <FormDescription>
                 (This token would be encrypted in a production environment)
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="mobile_number"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Recipient Mobile Number</FormLabel>
+              <FormControl>
+                <Input type="tel" placeholder="e.g., +1234567890" {...field} />
+              </FormControl>
+              <FormDescription>
+                The mobile number to which SMS notifications will be sent.
               </FormDescription>
               <FormMessage />
             </FormItem>

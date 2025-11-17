@@ -24,6 +24,7 @@ export interface SmsApiCredential {
   id: string;
   instance_id: string;
   access_token: string;
+  mobile_number: string; // New: Mobile number for SMS recipient
   created_at: string;
   created_by: string; // User ID of who created it
 }

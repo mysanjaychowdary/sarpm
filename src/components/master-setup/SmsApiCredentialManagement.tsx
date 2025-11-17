@@ -103,13 +103,14 @@ export function SmsApiCredentialManagement() {
               <TableRow>
                 <TableHead>Instance ID</TableHead>
                 <TableHead>Access Token</TableHead>
+                <TableHead>Mobile Number</TableHead> {/* New Table Head */}
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {smsApiCredentials.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center">No SMS API credentials yet.</TableCell>
+                  <TableCell colSpan={4} className="text-center">No SMS API credentials yet.</TableCell> {/* Updated colspan */}
                 </TableRow>
               ) : (
                 smsApiCredentials.map((credential) => (
@@ -146,6 +147,7 @@ export function SmsApiCredentialManagement() {
                         )}
                       </div>
                     </TableCell>
+                    <TableCell>{credential.mobile_number}</TableCell> {/* New Table Cell */}
                     <TableCell>
                       <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEditClick(credential)}>Edit</Button>
                       <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(credential)}>Delete</Button>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm } from "@hookform/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -108,30 +108,32 @@ export function CampaignEntryForm({ onCampaignAdded }: CampaignEntryFormProps) {
         const panelUserName = panelUsers.find(u => u.id === values.panel_user_id)?.username || "a user";
         const smsMessage = `New campaign "${values.campaign_name}" (${values.campaign_id}) created for ${panelUserName} on ${format(values.campaign_date, "PPP")}. Type: ${values.campaign_type}.`;
         
-        // Placeholder phone number. In a real app, this would come from user data.
-        const recipientPhoneNumber = "84933313xxx"; 
+        const firstSmsCredential = smsApiCredentials[0]; // Use the first available credential
+        const recipientPhoneNumber = firstSmsCredential.mobile_number;
+        const instanceId = firstSmsCredential.instance_id;
+        const accessToken = firstSmsCredential.access_token;
 
-        try {
-          const { data, error } = await supabase.functions.invoke('send-sms', {
-            body: JSON.stringify({
-              phoneNumber: recipientPhoneNumber,
-              message: smsMessage,
-            }),
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`,
-              'Content-Type': 'application/json',
-            },
-          });
+        if (!recipientPhoneNumber) {
+          console.warn("No recipient mobile number configured for SMS notifications. Skipping SMS.");
+          showError("No recipient mobile number configured for SMS notifications.");
+        } else {
+          try {
+            const encodedMessage = encodeURIComponent(smsMessage);
+            const smsApiUrl = `https://whatsupsms.in/api/send?number=${recipientPhoneNumber}&type=text&message=${encodedMessage}&instance_id=${instanceId}&access_token=${accessToken}`;
 
-          if (error) {
-            console.error("Error sending SMS:", error);
-            showError("Failed to send SMS notification: " + error.message);
-          } else if (data && data.message) {
-            showSuccess("SMS notification sent: " + data.message);
+            const smsResponse = await fetch(smsApiUrl);
+            const smsData = await smsResponse.json();
+
+            if (!smsResponse.ok) {
+              console.error('SMS API error:', smsData);
+              showError('Failed to send SMS: ' + (smsData.message || 'Unknown error'));
+            } else {
+              showSuccess("SMS notification sent: " + smsData.message);
+            }
+          } catch (smsError: any) {
+            console.error("Unexpected error sending SMS:", smsError);
+            showError("An unexpected error occurred while sending SMS: " + smsError.message);
           }
-        } catch (smsError: any) {
-          console.error("Unexpected error invoking send-sms function:", smsError);
-          showError("An unexpected error occurred while sending SMS: " + smsError.message);
         }
       } else if (smsApiCredentials.length === 0) {
         console.warn("No SMS API credentials configured. Skipping SMS notification.");
