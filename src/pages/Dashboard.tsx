@@ -18,9 +18,17 @@ const Dashboard = () => {
 
   // Determine if the current user is an admin
   const currentUserTeamMember = useMemo(() => {
-    return teamMembers.find(member => member.id === user?.id);
+    if (user && teamMembers.length > 0) {
+      const foundMember = teamMembers.find(member => member.id === user.id);
+      console.log("Dashboard Debug: Current user ID:", user.id);
+      console.log("Dashboard Debug: All team members:", teamMembers);
+      console.log("Dashboard Debug: Found team member for current user:", foundMember);
+      return foundMember;
+    }
+    return null;
   }, [teamMembers, user]);
   const isAdmin = currentUserTeamMember?.role === "Admin";
+  console.log("Dashboard Debug: Is current user Admin?", isAdmin);
 
   console.log("Dashboard: Rendering. isLoading:", isLoading, "error:", error, "campaignReports count:", campaignReports.length);
 
@@ -55,7 +63,7 @@ const Dashboard = () => {
       <Card>
         <CardHeader>
           <CardTitle>Error Loading Dashboard</CardTitle>
-        </CardHeader>
+          </CardHeader>
         <CardContent>
           <p>An error occurred: {error}</p>
         </CardContent>

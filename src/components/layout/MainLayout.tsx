@@ -24,9 +24,17 @@ const MainLayout: React.FC = () => {
   const { teamMembers } = useAppContext();
 
   const currentUserTeamMember = useMemo(() => {
-    return teamMembers.find(member => member.id === user?.id);
+    if (user && teamMembers.length > 0) {
+      const foundMember = teamMembers.find(member => member.id === user.id);
+      console.log("MainLayout Debug: Current user ID:", user.id);
+      console.log("MainLayout Debug: All team members:", teamMembers);
+      console.log("MainLayout Debug: Found team member for current user:", foundMember);
+      return foundMember;
+    }
+    return null;
   }, [teamMembers, user]);
   const isAdmin = currentUserTeamMember?.role === "Admin";
+  console.log("MainLayout Debug: Is current user Admin?", isAdmin);
 
   const toggleSidebar = () => {
     setIsSidebarMinimized(!isSidebarMinimized);
