@@ -76,6 +76,7 @@ export interface AppContextType {
   deleteSmsApiCredential: (id: string) => Promise<void>; // New: Delete SMS API credential
   addCampaignReport: (report: Omit<CampaignReport, "id" | "created_date" | "updated_date" | "created_by_admin_id">) => Promise<void>; // Updated field names
   updateCampaignStatus: (id: string, status: CampaignStatus) => Promise<void>;
+  deleteCampaignReport: (id: string) => Promise<void>; // New: Delete campaign report
   addTeamMember: (member: Omit<TeamMember, "id" | "created_at">) => Promise<void>; // New: Add team member
   updateTeamMember: (member: TeamMember) => Promise<void>; // New: Update team member
   deleteTeamMember: (id: string) => Promise<void>; // New: Delete team member

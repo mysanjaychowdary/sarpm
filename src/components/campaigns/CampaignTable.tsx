@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,14 +11,17 @@ import { Link } from "react-router-dom";
 import { CampaignReport } from "@/types";
 import { useSession } from "@/context/SessionContext"; // Import useSession
 import { supabase } from "@/integrations/supabase/client"; // Import supabase client
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"; // Import Dialog components
 
 interface CampaignTableProps {
   reports?: CampaignReport[]; // Optional prop to filter reports
 }
 
 export function CampaignTable({ reports }: CampaignTableProps) {
-  const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus, teamMembers, smsApiCredentials } = useAppContext();
+  const { campaignReports, panels, panelUsers, panel3Credentials, updateCampaignStatus, deleteCampaignReport, teamMembers, smsApiCredentials } = useAppContext();
   const { user, session } = useSession(); // Get session info
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<CampaignReport | null>(null);
 
   // Determine if the current user is an admin
   const currentUserTeamMember = useMemo(() => {
@@ -87,6 +90,24 @@ export function CampaignTable({ reports }: CampaignTableProps) {
     }
   };
 
+  const handleDeleteClick = (report: CampaignReport) => {
+    setSelectedCampaign(report);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (selectedCampaign) {
+      try {
+        await deleteCampaignReport(selectedCampaign.id);
+        showSuccess(`Campaign '${selectedCampaign.campaign_name}' deleted successfully!`);
+        setIsDeleteDialogOpen(false);
+        setSelectedCampaign(null);
+      } catch (error) {
+        // Error handled by AppContext
+      }
+    }
+  };
+
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -145,7 +166,7 @@ export function CampaignTable({ reports }: CampaignTableProps) {
                     </Button>
                   )}
                   {isAdmin && ( // Only show delete button if user is an Admin
-                    <Button variant="destructive" size="sm">Delete</Button>
+                    <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(report)}>Delete</Button>
                   )}
                 </TableCell>
               </TableRow>
@@ -153,6 +174,24 @@ export function CampaignTable({ reports }: CampaignTableProps) {
           )}
         </TableBody>
       </Table>
+
+      {selectedCampaign && (
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Deletion</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              Are you sure you want to delete the campaign "<strong>{selectedCampaign.campaign_name}</strong>" (ID: {selectedCampaign.campaign_id})?
+              This action cannot be undone.
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+              <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

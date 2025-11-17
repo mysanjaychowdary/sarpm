@@ -205,6 +205,17 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     showSuccess("Campaign status updated successfully!");
   };
 
+  const deleteCampaignReport = async (id: string) => {
+    console.log("AppContext: Deleting campaign report with ID:", id);
+    const { error } = await supabase.from('campaign_reports').delete().eq('id', id);
+    if (error) {
+      showError("Failed to delete campaign report: " + error.message);
+      throw error;
+    }
+    setCampaignReports((prev) => prev.filter((report) => report.id !== id));
+    showSuccess("Campaign report deleted successfully!");
+  };
+
   // New: Team Member CRUD operations
   const addTeamMember = async (member: Omit<TeamMember, "id" | "created_at">) => {
     console.log("AppContext: Adding team member:", member.name);
@@ -262,6 +273,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     deleteSmsApiCredential, // New: deleteSmsApiCredential function
     addCampaignReport,
     updateCampaignStatus,
+    deleteCampaignReport, // New: deleteCampaignReport function
     addTeamMember, // New: addTeamMember function
     updateTeamMember, // New: updateTeamMember function
     deleteTeamMember, // New: deleteTeamMember function
